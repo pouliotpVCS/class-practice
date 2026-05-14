@@ -3,97 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Foundation Engineering: Spread Footing Design</title>
+    <title>Spread Footing Practice</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
-        .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
-        h1 { color: #673ab7; text-align: center; border-bottom: 2px solid #673ab7; padding-bottom: 10px; }
-        #scoreDisplay { position: absolute; top: 25px; right: 30px; font-size: 1.1em; font-weight: bold; background-color: #e9ecef; padding: 5px 10px; border-radius: 5px; }
-        .layout-grid { display: grid; grid-template-columns: 1fr 350px; gap: 25px; }
-        .step { border: 1px solid #ddd; padding: 20px; margin-bottom: 25px; border-radius: 8px; background-color: #f9f9f9; }
-        .formula-box { background-color: #f0ebf8; padding: 12px; border-left: 5px solid #673ab7; margin: 10px 0; font-family: monospace; font-weight: bold; }
-        .param-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
-        .highlight { color: #673ab7; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #673ab7; margin-bottom: 20px; }
+        .btn-back { background: #6c757d; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; }
+        .step { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #f9f9f9; }
         button { padding: 10px 20px; background-color: #673ab7; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .feedback { margin-top: 15px; padding: 15px; border-radius: 5px; font-weight: bold; display: none; }
-        .correct { background-color: #d4edda; color: #155724; }
-        .incorrect { background-color: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 <div class="container">
-    <div id="scoreDisplay">Problems Correct: 0</div> 
-    <h1>🏗️ Spread Footing Design Practice</h1>
-    <div class="layout-grid">
-        <div class="work-area">
-            <div class="step">
-                <h2>Design Scenario</h2>
-                <div class="param-grid">
-                    <div>Load: <span class="highlight" id="dispLoad">--</span></div>
-                    <div>Soil: <span class="highlight" id="dispSoilType">--</span></div>
-                    <div>Thick: <span class="highlight" id="dispThick">--</span></div>
-                    <div id="boxDim">Dimensions: <span class="highlight" id="dispDim">--</span></div>
-                </div>
-            </div>
-            <div id="step0" class="step">
-                <h2>Step 1: Calculate Original Footing Area</h2>
-                <input type="number" id="inputExistArea" step="0.01">
-                <button onclick="checkStep0()">Verify Area</button>
-                <div id="feedback0" class="feedback"></div>
-            </div>
-            <div id="step1" class="step" style="display:none;">
-                <h2>Step 2: Net Allowable Pressure</h2>
-                <input type="number" id="inputQNet">
-                <button onclick="checkStep1()">Check Net</button>
-                <div id="feedback1" class="feedback"></div>
-            </div>
-            <div id="step3" class="step" style="display:none;">
-                <h2>Step 4: Recommendation</h2>
-                <button onclick="checkStep3(true)" style="background:#28a745;">SAFE</button>
-                <button onclick="checkStep3(false)" style="background:#dc3545;">UNSAFE</button>
-                <div id="feedback3" class="feedback"></div>
-            </div>
-        </div>
-        <div class="reference-area">
-             <button onclick="window.location.href='index.html'" style="width:100%; margin-bottom:10px; background:#444;">Back to Dashboard</button>
-             <div class="step"><h3>Soil Chart</h3><p>Soft Clay: 1500 psf<br>Silty Sand: 2000 psf<br>Gravel: 4000 psf</p></div>
-        </div>
+    <div class="header">
+        <a href="index.html" class="btn-back">← Back to Dashboard</a>
+        <h1>Spread Footing Design</h1>
+        <div id="scoreDisplay" style="font-weight:bold;">Correct: 0</div>
+    </div>
+
+    <div class="step">
+        <h3>Design Parameters</h3>
+        <p>Load: 25,000 lb | Soil: Silty Sand (2000 psf) | Thick: 2.0 ft</p>
+    </div>
+
+    <div id="step0" class="step">
+        <h3>Step 1: Verify Area (4ft x 4ft)</h3>
+        <input type="number" id="inputExistArea" placeholder="sq ft">
+        <button onclick="checkStep0()">Check</button>
+    </div>
+
+    <div id="step3" class="step" style="display:none;">
+        <h3>Final Decision</h3>
+        <button onclick="checkStep3(true)" style="background:green;">SAFE</button>
+        <button onclick="checkStep3(false)" style="background:red;">UNSAFE</button>
     </div>
 </div>
+
 <script>
-    let prob = {}; let score = parseInt(localStorage.getItem('score_Footing')) || 0;
-    const soilData = { "Soft Clay": 1500, "Silty Sand": 2000, "Gravel": 4000 };
-    function generateProblem() {
-        prob.load = 25000; prob.thick = 2; prob.soilType = "Silty Sand"; prob.qa = 2000;
-        prob.w = 4; prob.l = 4; prob.existArea = 16;
-        prob.ansQNet = prob.qa - (prob.thick * 150);
-        prob.ansReqArea = prob.load / prob.ansQNet;
-        prob.isSafe = prob.existArea >= prob.ansReqArea;
-        document.getElementById('dispLoad').textContent = "25,000 lb";
-        document.getElementById('dispSoilType').textContent = prob.soilType;
-        document.getElementById('dispDim').textContent = "4ft x 4ft";
-        updateScore();
-    }
+    // LOAD SCORE FROM STORAGE
+    let score = parseInt(localStorage.getItem('score_footing')) || 0;
+
     function checkStep0() {
-        let val = parseFloat(document.getElementById('inputExistArea').value);
-        if (val === 16) { document.getElementById('step1').style.display = "block"; }
-    }
-    function checkStep1() {
-        let val = parseFloat(document.getElementById('inputQNet').value);
-        if (val === 1700) { document.getElementById('step3').style.display = "block"; }
-    }
-    function checkStep3(userChoice) {
-        if (userChoice === prob.isSafe) {
-            score++; updateScore();
-            alert("Correct! Problem logged.");
-            setTimeout(generateProblem, 1000);
+        if(document.getElementById('inputExistArea').value == 16) {
+            document.getElementById('step3').style.display = "block";
         }
     }
-    function updateScore() { 
-        document.getElementById('scoreDisplay').textContent = `Problems Correct: ${score}`;
-        localStorage.setItem('score_Footing', score); 
+
+    function checkStep3(isSafe) {
+        if(isSafe === true) {
+            score++;
+            updateScore();
+            alert("Correct! Score updated.");
+            location.reload();
+        }
     }
-    generateProblem();
+
+    function updateScore() {
+        document.getElementById('scoreDisplay').textContent = `Correct: ${score}`;
+        // SAVE SCORE TO STORAGE
+        localStorage.setItem('score_footing', score);
+    }
+
+    window.onload = updateScore;
 </script>
 </body>
 </html>
