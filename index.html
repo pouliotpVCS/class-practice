@@ -3,71 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Engineering Design Practice</title>
+    <title>Engineering Design Practice Portal</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            background-color: #f4f7f6;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-        }
-        .link-card {
-            display: block;
-            background: #fff;
-            border: 1px solid #ddd;
-            margin-bottom: 15px;
-            padding: 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            color: #2c3e50;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .link-card:hover {
-            transform: translateY(-2px);
-            border-color: #3498db;
-            background-color: #f0f7ff;
-        }
-        .link-card h3 {
-            margin: 0;
-            color: #2980b9;
-        }
-        .link-card p {
-            margin: 5px 0 0;
-            font-size: 0.9em;
-            color: #666;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 40px auto; padding: 20px; background-color: #f4f7f6; }
+        .container { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .profile-section { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        input { padding: 10px; border-radius: 4px; border: 1px solid #ddd; margin-right: 10px; width: 200px; }
+        button { padding: 10px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .score-tag { float: right; background: #27ae60; color: white; padding: 4px 12px; border-radius: 15px; font-size: 0.85em; font-weight: bold; }
+        .link-card { display: block; background: #fff; border: 1px solid #ddd; margin-bottom: 15px; padding: 20px; border-radius: 6px; text-decoration: none; color: #2c3e50; transition: 0.2s; }
+        .link-card:hover { border-color: #3498db; background-color: #f0f7ff; transform: translateY(-2px); }
+        h1 { margin-top: 0; color: #2c3e50; }
+        .welcome-header { display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
 
+    <div class="profile-section" id="loginArea">
+        <h3 style="margin-top:0;">Student Access</h3>
+        <label>Enter Name: </label>
+        <input type="text" id="studentNameInput" placeholder="Your Full Name">
+        <button onclick="saveName()">Begin Session</button>
+    </div>
+
+    <div class="profile-section" id="welcomeArea" style="display:none;">
+        <div class="welcome-header">
+            <h2 style="margin:0;">Welcome, <span id="displayName"></span></h2>
+            <button onclick="clearProfile()" style="background:transparent; border: 1px solid white; font-size: 0.7em;">Switch User</button>
+        </div>
+    </div>
+
     <div class="container">
         <h1>Course Modules</h1>
-        <p>Select a module below to begin your practice session.</p>
-
+        
         <a href="BeamPractice.html" class="link-card">
+            <span class="score-tag">Score: <span id="scoreBeam">0</span></span>
             <h3>Structural: Beam Practice</h3>
-            <p>Calculate moments, shear, and deflection for various loading conditions.</p>
+            <p>Master reactions for point and uniform loading scenarios.</p>
         </a>
 
         <a href="SizingASpreadFooting.html" class="link-card">
+            <span class="score-tag">Score: <span id="scoreFooting">0</span></span>
             <h3>Geotechnical: Sizing a Spread Footing</h3>
-            <p>Determine footing dimensions based on allowable bearing capacity and load.</p>
+            <p>Determine required footing area and verify design safety.</p>
         </a>
     </div>
 
+    <script>
+        function saveName() {
+            const name = document.getElementById('studentNameInput').value;
+            if(name) {
+                localStorage.setItem('studentName', name);
+                updateUI();
+            }
+        }
+
+        function clearProfile() {
+            localStorage.removeItem('studentName');
+            localStorage.removeItem('score_BeamPractice');
+            localStorage.removeItem('score_Footing');
+            location.reload();
+        }
+
+        function updateUI() {
+            const savedName = localStorage.getItem('studentName');
+            if(savedName) {
+                document.getElementById('loginArea').style.display = 'none';
+                document.getElementById('welcomeArea').style.display = 'block';
+                document.getElementById('displayName').innerText = savedName;
+            }
+            document.getElementById('scoreBeam').innerText = localStorage.getItem('score_BeamPractice') || '0';
+            document.getElementById('scoreFooting').innerText = localStorage.getItem('score_Footing') || '0';
+        }
+
+        window.onload = updateUI;
+    </script>
 </body>
 </html>
