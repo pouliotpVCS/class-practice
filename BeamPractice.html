@@ -21,7 +21,7 @@
         .val-data { font-size: 0.9em; font-weight: 800; color: #1a3a5a; }
         .step { border: 1px solid #e9ecef; padding: 15px; margin-bottom: 12px; border-radius: 8px; opacity: 0.3; pointer-events: none; }
         .step.active { border: 2px solid var(--primary); background: #fff; opacity: 1; pointer-events: auto; }
-        .formula-bar { background: #343a40; color: #00ffc3; padding: 12px; border-radius: 4px; text-align: center; font-size: 1.1em; margin: 10px 0; min-height: 50px; }
+        .formula-bar { background: #343a40; color: #00ffc3; padding: 12px; border-radius: 4px; text-align: center; font-size: 1em; margin: 10px 0; min-height: 60px; line-height: 1.4; }
         .feedback { margin-top: 8px; padding: 6px; border-radius: 4px; font-size: 0.85em; font-weight: bold; display: none; }
         .correct { background: #d3f9d8; color: #2b8a3e; }
         iframe { width: 100%; height: 100%; border: none; filter: invert(0.9) hue-rotate(180deg); }
@@ -30,7 +30,7 @@
     </style>
 </head>
 <body>
-    <div id="preloader"><div class="loader-spinner"></div><div style="margin-top:10px;">Loading Equations...</div></div>
+    <div id="preloader"><div class="loader-spinner"></div><div style="margin-top:10px;">Generating Statics Proofs...</div></div>
 
     <div class="wrapper">
         <div class="work-area">
@@ -48,29 +48,37 @@
             </div>
 
             <div id="step1" class="step active">
-                <strong>1. Total Vertical Force (\( \sum F_y \))</strong>
-                <div class="formula-bar">\[ \sum F_y = -(w \cdot L) - P \]</div>
+                <strong>1. Sum of Vertical Forces (\( \sum F_y \))</strong>
+                <div class="formula-bar" id="form1">
+                    \[ \sum F_y = -(w \cdot L) - P \]
+                </div>
                 <input type="number" id="in1" placeholder="lb (Negative)"><button onclick="check1()">Verify</button>
                 <div id="fb1" class="feedback"></div>
             </div>
 
             <div id="step2" class="step">
-                <strong>2. Moments at A (\( \sum M_A \))</strong>
-                <div class="formula-bar">\[ \sum M_A = -(w \cdot L \cdot \frac{L}{2}) - (P \cdot x) \]</div>
+                <strong>2. Sum of Moments at Support A (\( \sum M_A \))</strong>
+                <div class="formula-bar" id="form2">
+                    \[ \sum M_A = -(w \cdot L \cdot \frac{L}{2}) - (P \cdot x) \]
+                </div>
                 <input type="number" id="in2" placeholder="lb-ft (Negative)"><button onclick="check2()">Verify</button>
                 <div id="fb2" class="feedback"></div>
             </div>
 
             <div id="step3" class="step">
-                <strong>3. Reaction B (\( R_{by} \))</strong>
-                <div class="formula-bar">\[ R_{by} = \frac{-\sum M_A}{L} \]</div>
+                <strong>3. Find Reaction at B (\( R_{by} \))</strong>
+                <div class="formula-bar" id="form3">
+                    \[ R_{by} = \frac{-\sum M_A}{L_{span}} \]
+                </div>
                 <input type="number" id="in3" placeholder="lb (Positive)"><button onclick="check3()">Verify</button>
                 <div id="fb3" class="feedback"></div>
             </div>
 
             <div id="step4" class="step">
-                <strong>4. Reaction A (\( R_{ay} \))</strong>
-                <div class="formula-bar">\[ R_{ay} = |\sum F_y| - R_{by} \]</div>
+                <strong>4. Final Equilibrium (\( R_{ay} \))</strong>
+                <div class="formula-bar" id="form4">
+                    \[ R_{ay} = |\sum F_y| - R_{by} \]
+                </div>
                 <input type="number" id="in4" placeholder="lb (Positive)"><button onclick="check4()">Submit</button>
                 <div id="fb4" class="feedback"></div>
             </div>
@@ -97,8 +105,8 @@
         
         function generate() {
             p.L = Math.floor(Math.random() * 19) + 12; 
-            p.w = (score > 0) ? 40 : 0;
-            p.points = (score === 0 || score > 1) ? [{mag: 600, dist: Math.floor(p.L * 0.6)}] : [];
+            p.w = (score === 1 || score > 2) ? 40 : 0;
+            p.points = (score === 0 || score > 2) ? [{mag: 600, dist: Math.floor(p.L * 0.6)}] : [];
 
             document.getElementById('scenarioTitle').innerText = "Level " + (score + 1);
             document.getElementById('dispL').innerText = p.L + " ft";
@@ -113,7 +121,7 @@
                 let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 r.setAttribute("x", 50); r.setAttribute("y", 60); r.setAttribute("width", 300); r.setAttribute("height", 40);
                 r.setAttribute("fill", "rgba(217, 72, 15, 0.1)"); r.setAttribute("stroke", "#d9480f"); container.appendChild(r);
-                addText(200, 55, `${p.w} lb/ft`, "middle", "#d9480f", "12px");
+                addText(200, 55, `${p.w} lb/ft (Distributed)`, "middle", "#d9480f", "11px");
             }
 
             p.points.forEach(pt => {
@@ -126,11 +134,23 @@
                 addText(x, 125, `x=${pt.dist}ft`, "middle", "#d9480f", "11px");
             });
 
+            // Math Logic
             p.totalFy = -((p.w * p.L) + p.points.reduce((s, pt) => s + pt.mag, 0));
             p.ma = -((p.w * p.L * p.L/2) + p.points.reduce((s, pt) => s + (pt.mag * pt.dist), 0));
-            p.rby = Math.abs(p.ma/p.L); p.ray = Math.abs(p.totalFy) - p.rby;
+            p.rby = Math.abs(p.ma/p.L); 
+            p.ray = Math.abs(p.totalFy) - p.rby;
 
+            updateFormulaDisplay();
             resetUI();
+        }
+
+        function updateFormulaDisplay() {
+            // Restore the LaTeX formulas explicitly
+            document.getElementById('form1').innerHTML = `\\[ \\sum F_y = -(${p.w} \\cdot ${p.L}) - ${p.points.length ? p.points[0].mag : 0} \\]`;
+            document.getElementById('form2').innerHTML = `\\[ \\sum M_A = -(${p.w} \\cdot ${p.L} \\cdot \\frac{${p.L}}{2}) - (${p.points.length ? p.points[0].mag : 0} \\cdot ${p.points.length ? p.points[0].dist : 0}) \\]`;
+            document.getElementById('form3').innerHTML = `\\[ R_{by} = \\frac{-\\sum M_A}{${p.L}} \\]`;
+            document.getElementById('form4').innerHTML = `\\[ R_{ay} = |\\sum F_y| - R_{by} \\]`;
+            if (window.MathJax) MathJax.typesetPromise();
         }
 
         function addText(x, y, txt, anchor, color, size) {
@@ -160,7 +180,6 @@
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
             document.getElementById('step1').classList.add('active');
             document.getElementById('scoreDisplay').innerText = `Mastery: ${score}/5`;
-            if (window.MathJax) MathJax.typesetPromise();
         }
 
         window.onload = function() { 
