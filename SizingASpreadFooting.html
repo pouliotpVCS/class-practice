@@ -3,7 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Spread Footing Design & Sizing</title>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+            }
+        };
+    </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
     <style>
         :root { --primary: #673ab7; --bg: #f4f7f6; --success: #2e7d32; --danger: #c62828; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: grid; grid-template-columns: 1fr 450px; height: 100vh; background: var(--bg); }
@@ -44,7 +56,9 @@
 
         <div id="step1" class="step active">
             <h3>1. Calculate Net Allowable Pressure ($q_{net}$)</h3>
-            <div class="formula-box">$$ q_{net} = q_{all} - (T \cdot 150 \text{ pcf}) $$</div>
+            <div class="formula-box">
+                $$ q_{net} = q_{all} - (T \cdot 150 \text{ pcf}) $$
+            </div>
             <input type="number" id="inQnet" placeholder="psf"> <button onclick="checkQnet()">Verify</button>
         </div>
 
@@ -59,7 +73,9 @@
         <div id="step3" class="step">
             <h3>3. Design Recommendation</h3>
             <p id="designPrompt">Calculate the minimum side length ($B$) for a <strong>Square Footing</strong> to the nearest <strong>3 inches (0.25 ft)</strong>.</p>
-            <div class="formula-box">$$ B_{min} = \sqrt{\frac{P}{q_{net}}} \text{ (Round up to nearest 0.25')} $$</div>
+            <div class="formula-box">
+                $$ B_{min} = \sqrt{\frac{P}{q_{net}}} \text{ (Round up to nearest 0.25')} $$
+            </div>
             <input type="number" id="inSize" step="0.25" placeholder="e.g. 4.25"> <span style="font-weight:bold;">ft</span>
             <button onclick="checkResize()">Submit Design</button>
         </div>
@@ -72,33 +88,24 @@
         let score = parseInt(localStorage.getItem('score_footing')) || 0;
 
         function generate() {
-            // Randomly decide if current is safe or unsafe (50/50)
             const forceUnsafe = Math.random() > 0.5;
-
             p.qa = [2000, 3000, 4000][Math.floor(Math.random() * 3)];
             p.load = Math.floor(Math.random() * 20000) + 15000;
-            p.thick = 2;
+            p.thick = 2; 
             p.qnet = p.qa - (p.thick * 150);
-            
-            // Calculate theoretical required side
             let reqSide = Math.sqrt(p.load / p.qnet);
             
-            if (forceUnsafe) {
-                // Give them a size slightly smaller than required
-                p.side = Math.floor(reqSide) - 0.5;
-                if(p.side < 2) p.side = 2;
-            } else {
-                // Give them a size larger than required
-                p.side = Math.ceil(reqSide) + 1;
+            if (forceUnsafe) { 
+                p.side = Math.floor(reqSide) - 0.5; 
+                if(p.side < 2) p.side = 2; 
+            } else { 
+                p.side = Math.ceil(reqSide) + 1; 
             }
 
             p.existArea = p.side * p.side;
             p.isSafe = p.existArea >= (p.load / p.qnet);
-            
-            // The "Correct" redesign size (rounded up to nearest 0.25)
             p.targetSize = Math.ceil(reqSide * 4) / 4; 
 
-            // UI Update
             document.getElementById('dispP').innerText = p.load + " lb";
             document.getElementById('dispQa').innerText = p.qa + " psf";
             document.getElementById('dispDim').innerText = p.side + "ft x " + p.side + "ft";
@@ -106,42 +113,39 @@
             document.getElementById('dispT').innerText = p.thick + " ft";
             document.getElementById('scoreDisplay').innerText = "Correct: " + score;
             
-            // Reset Steps
             document.querySelectorAll('input').forEach(i => i.value = "");
-            document.querySelectorAll('.step').forEach((s, idx) => {
-                if(idx > 1) s.classList.remove('active');
-            });
+            document.querySelectorAll('.step').forEach((s, idx) => { if(idx > 1) s.classList.remove('active'); });
             document.getElementById('safetyFeedback').style.display = "none";
+            
+            // Re-render MathJax to ensure subscripts appear correctly
+            if (window.MathJax && window.MathJax.typeset) {
+                window.MathJax.typeset();
+            }
         }
 
         function checkQnet() {
             let val = parseFloat(document.getElementById('inQnet').value);
             if(Math.abs(val - p.qnet) < 5) {
                 document.getElementById('step2').classList.add('active');
-                alert("Correct Net Pressure!");
-            } else { alert("Try again: q_all - (Thickness * 150)"); }
+            } else { alert("Try again: q_all - (T * 150)"); }
         }
 
         function checkSafety(choice) {
             const fb = document.getElementById('safetyFeedback');
             fb.style.display = "block";
-            
             if (choice === p.isSafe) {
-                fb.innerText = choice ? "Correct! The footing is Safe." : "Correct! The footing is Unsafe.";
+                fb.innerText = choice ? "Correct! Safe." : "Correct! Unsafe.";
                 fb.style.background = "#d4edda";
                 fb.style.color = "#155724";
-                
                 if(!choice) {
-                    // Activate redesign step
                     document.getElementById('step3').classList.add('active');
                 } else {
-                    // Safe footing, just grant point and move on
                     score++;
                     localStorage.setItem('score_footing', score);
-                    setTimeout(() => { alert("Great job! Generating new scenario..."); generate(); }, 1500);
+                    setTimeout(generate, 1500);
                 }
             } else {
-                fb.innerText = "Incorrect Analysis. Re-calculate Required Area.";
+                fb.innerText = "Incorrect Analysis.";
                 fb.style.background = "#f8d7da";
                 fb.style.color = "#721c24";
             }
@@ -152,10 +156,10 @@
             if(Math.abs(val - p.targetSize) < 0.01) {
                 score++;
                 localStorage.setItem('score_footing', score);
-                alert("Redesign Approved! Footing is now optimized.");
+                alert("Redesign Approved!");
                 generate();
             } else {
-                alert(`Incorrect. Target Area was ${(p.load/p.qnet).toFixed(2)} ft². Root of that is ${Math.sqrt(p.load/p.qnet).toFixed(2)} ft. Round up to nearest 0.25'.`);
+                alert("Check math and round UP to nearest 0.25'.");
             }
         }
 
