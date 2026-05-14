@@ -3,86 +3,141 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beam Statics Practice</title>
+    <title>Beam Statics Lab</title>
     <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <style>
         :root { --primary: #1a3a5a; --accent: #d9480f; --bg: #f8f9fa; --card: #ffffff; }
         body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background-color: var(--bg); color: #212529; overflow: hidden; }
+        
+        /* Preloader */
+        #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s; }
+        .loader-spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .wrapper { display: grid; grid-template-columns: 1.2fr 1fr 450px; height: 100vh; gap: 15px; padding: 15px; box-sizing: border-box; }
         .work-area { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow-y: auto; }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); margin-bottom: 15px; padding-bottom: 10px; }
         .btn-back { background: #6c757d; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; }
         .step { border: 1px solid #e9ecef; padding: 12px; margin-bottom: 10px; border-radius: 8px; opacity: 0.3; pointer-events: none; }
         .step.active { border: 2px solid var(--primary); background: #fff; opacity: 1; pointer-events: auto; }
-        .formula-bar { background: #343a40; color: #00ffc3; padding: 10px; border-radius: 4px; text-align: center; }
+        .formula-bar { background: #343a40; color: #00ffc3; padding: 10px; border-radius: 4px; text-align: center; font-size: 0.9em; }
         .svg-label { font-size: 11px; font-weight: bold; fill: var(--accent); }
-        #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .loader-spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .feedback { margin-top: 8px; padding: 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold; display: none; }
+        .correct { background: #d3f9d8; color: #2b8a3e; }
+        iframe { width: 100%; height: 100%; border: none; filter: invert(0.9) hue-rotate(180deg); }
     </style>
 </head>
 <body>
-    <div id="preloader"><div class="loader-spinner"></div><div class="loader-text">LOADING STATICS LAB...</div></div>
+    <div id="preloader"><div class="loader-spinner"></div><div style="margin-top:10px;">Initializing Beam Lab...</div></div>
 
     <div class="wrapper">
         <div class="work-area">
             <div class="header-flex">
                 <a href="index.html" class="btn-back">← Dashboard</a>
-                <h1 id="scenarioTitle" style="font-size: 1em;">Structural Analysis</h1>
+                <h1 id="scenarioTitle" style="font-size: 1em;">Level Loading...</h1>
                 <div id="scoreDisplay" style="background:var(--accent); color:white; padding:4px 12px; border-radius:20px; font-size:0.8em;">Mastery: 0/5</div>
             </div>
-            <div id="step1" class="step active"><strong>1. Total Vertical Force</strong><div class="formula-bar">\[ \sum F_y \]</div><input type="number" id="in1"><button onclick="check1()">Verify</button></div>
-            <div id="step2" class="step"><strong>2. Moments at A</strong><div class="formula-bar">\[ \sum M_A \]</div><input type="number" id="in2"><button onclick="check2()">Verify</button></div>
-            <div id="step3" class="step"><strong>3. Reaction B</strong><div class="formula-bar">\[ R_{by} \]</div><input type="number" id="in3"><button onclick="check3()">Verify</button></div>
-            <div id="step4" class="step"><strong>4. Reaction A</strong><div class="formula-bar">\[ R_{ay} \]</div><input type="number" id="in4"><button onclick="check4()">Submit</button></div>
+            
+            <div id="step1" class="step active">
+                <strong>1. Total Vertical Force</strong>
+                <div class="formula-bar">\[ \sum F_y = -(wL + \sum P) \]</div>
+                <input type="number" id="in1" placeholder="lb (Negative)"><button onclick="check1()">Verify</button>
+                <div id="fb1" class="feedback"></div>
+            </div>
+            <div id="step2" class="step">
+                <strong>2. Moments at A</strong>
+                <div class="formula-bar">\[ \sum M_A = -(wL \cdot L/2) - \sum(P \cdot x) \]</div>
+                <input type="number" id="in2" placeholder="lb-ft (Negative)"><button onclick="check2()">Verify</button>
+                <div id="fb2" class="feedback"></div>
+            </div>
+            <div id="step3" class="step">
+                <strong>3. Reaction B</strong>
+                <div class="formula-bar">\[ R_{by} = -\sum M_A / L \]</div>
+                <input type="number" id="in3" placeholder="lb (Positive)"><button onclick="check3()">Verify</button>
+                <div id="fb3" class="feedback"></div>
+            </div>
+            <div id="step4" class="step">
+                <strong>4. Reaction A</strong>
+                <div class="formula-bar">\[ R_{ay} = |\sum F_y| - R_{by} \]</div>
+                <input type="number" id="in4" placeholder="lb (Positive)"><button onclick="check4()">Submit</button>
+                <div id="fb4" class="feedback"></div>
+            </div>
         </div>
 
-        <div style="background:white; border-radius:12px; padding:20px;">
+        <div style="background:white; border-radius:12px; padding:20px; display:flex; flex-direction:column;">
+            <div style="text-align:center; font-weight:bold; margin-bottom:10px;">FREE BODY DIAGRAM</div>
             <svg width="400" height="250" viewBox="0 0 400 250" id="beamSvg">
                 <rect x="50" y="110" width="300" height="12" fill="#495057" rx="2" />
-                <path d="M40 145 L60 145 L50 122 Z" fill="#1a3a5a" />
+                <path d="M40 145 L60 145 L50 122 Z" fill="#1a3a5a" /> 
                 <circle cx="350" cy="132" r="7" fill="#adb5bd" stroke="#495057" />
                 <g id="dynamicLoads"></g>
                 <defs><marker id="arr" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#d9480f" /></marker></defs>
             </svg>
         </div>
-        <div style="background:#212529; border-radius:12px; overflow:hidden;"><iframe src="https://www.desmos.com/scientific" width="100%" height="100%" style="border:none; filter:invert(0.9) hue-rotate(180deg);"></iframe></div>
+        <div style="background:#212529; border-radius:12px; overflow:hidden;"><iframe src="https://www.desmos.com/scientific"></iframe></div>
     </div>
 
     <script>
         let p = {}; let score = parseInt(localStorage.getItem('score_beam')) || 0;
+
         function generate() {
             const container = document.getElementById('dynamicLoads'); container.innerHTML = "";
-            p.L = 20; p.w = (score > 0) ? 40 : 0; p.points = (score === 0 || score > 1) ? [{mag: 500, dist: 12}] : [];
+            p.L = 20; p.w = (score === 1 || score > 2) ? 40 : 0;
+            p.points = (score === 0 || score > 2) ? [{mag: 600, dist: 12}] : [];
             
+            document.getElementById('scenarioTitle').innerText = "Level " + (score + 1);
             if(p.w > 0) {
                 let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 r.setAttribute("x", 50); r.setAttribute("y", 60); r.setAttribute("width", 300); r.setAttribute("height", 40);
                 r.setAttribute("fill", "rgba(217, 72, 15, 0.1)"); r.setAttribute("stroke", "#d9480f"); container.appendChild(r);
-                addLabel(160, 55, "w=" + p.w, container);
+                addLabel(160, 55, p.w + " lb/ft", container);
             }
             p.points.forEach(pt => {
                 let x = 50 + (pt.dist/p.L)*300;
                 let l = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 l.setAttribute("x1", x); l.setAttribute("y1", 30); l.setAttribute("x2", x); l.setAttribute("y2", 100);
                 l.setAttribute("stroke", "#d9480f"); l.setAttribute("stroke-width", "4"); l.setAttribute("marker-end", "url(#arr)");
-                container.appendChild(l); addLabel(x-20, 25, pt.mag + "lb", container);
+                container.appendChild(l); addLabel(x-20, 25, pt.mag + " lb", container);
             });
-            
+
             p.totalFy = -((p.w * p.L) + p.points.reduce((s, pt) => s + pt.mag, 0));
             p.ma = -((p.w * p.L * 10) + p.points.reduce((s, pt) => s + (pt.mag * pt.dist), 0));
             p.rby = Math.abs(p.ma/p.L); p.ray = Math.abs(p.totalFy) - p.rby;
+
+            // Reset UI
+            document.querySelectorAll('input').forEach(i => i.value = "");
+            document.querySelectorAll('.feedback').forEach(f => f.style.display = "none");
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.getElementById('step1').classList.add('active');
             document.getElementById('scoreDisplay').innerText = `Mastery: ${score}/5`;
         }
+
         function addLabel(x, y, txt, parent) {
             let t = document.createElementNS("http://www.w3.org/2000/svg", "text");
             t.setAttribute("x", x); t.setAttribute("y", y); t.setAttribute("class", "svg-label");
             t.textContent = txt; parent.appendChild(t);
         }
-        function check1() { if(Math.abs(parseFloat(document.getElementById('in1').value) - p.totalFy) < 2) activate('step2'); }
-        function check4() { score++; localStorage.setItem('score_beam', score); generate(); }
-        function activate(id) { document.getElementById(id).classList.add('active'); }
-        window.onload = function() { generate(); document.getElementById('preloader').style.display = 'none'; };
+
+        function check1() { if(Math.abs(parseFloat(document.getElementById('in1').value) - p.totalFy) < 2) activate('step2', 'fb1'); }
+        function check2() { if(Math.abs(parseFloat(document.getElementById('in2').value) - p.ma) < 10) activate('step3', 'fb2'); }
+        function check3() { if(Math.abs(parseFloat(document.getElementById('in3').value) - p.rby) < 2) activate('step4', 'fb3'); }
+        function check4() {
+            if(Math.abs(parseFloat(document.getElementById('in4').value) - p.ray) < 2) {
+                score++; localStorage.setItem('score_beam', score); generate();
+            }
+        }
+        function activate(next, fb) { 
+            let f = document.getElementById(fb); f.style.display = "block"; f.className = "feedback correct"; f.innerText = "Correct";
+            document.getElementById(next).classList.add('active'); 
+        }
+
+        window.onload = function() {
+            generate();
+            setTimeout(() => { 
+                document.getElementById('preloader').style.opacity = '0';
+                setTimeout(() => document.getElementById('preloader').style.display = 'none', 500);
+            }, 1000);
+        };
     </script>
 </body>
 </html>

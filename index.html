@@ -14,16 +14,9 @@
         .link-card { display: block; background: #fff; border: 1px solid #ddd; margin-bottom: 15px; padding: 20px; border-radius: 6px; text-decoration: none; color: #2c3e50; transition: transform 0.2s; position: relative; }
         .link-card:hover { transform: translateY(-2px); border-color: #3498db; background-color: #f0f7ff; }
         .score-badge { float: right; background: #27ae60; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; }
-        
-        /* Preloader Styles */
-        #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
-        .loader-spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div id="preloader"><div class="loader-spinner"></div><div class="loader-text">INITIALIZING DASHBOARD...</div></div>
-
     <div class="profile-section" id="loginArea">
         <h3 style="margin-top:0;">Student Access</h3>
         <input type="text" id="studentNameInput" placeholder="Enter Full Name">
@@ -35,7 +28,7 @@
         <a href="BeamPractice.html" class="link-card">
             <span class="score-badge">Mastery: <span id="beamScore">0</span>/5</span>
             <h3>Structural: Beam Practice</h3>
-            <p>Calculate moments, shear, and reactions.</p>
+            <p>Calculate moments, shear, and reactions for various loads.</p>
         </a>
         <a href="SizingASpreadFooting.html" class="link-card">
             <span class="score-badge">Correct: <span id="footingScore">0</span></span>
@@ -53,8 +46,7 @@
             document.getElementById('beamScore').innerText = localStorage.getItem('score_beam') || '0';
             document.getElementById('footingScore').innerText = localStorage.getItem('score_footing') || '0';
             const savedName = localStorage.getItem('studentName');
-            if(savedName) document.getElementById('loginArea').innerHTML = `<h3>Welcome, ${savedName}</h3>`;
-            document.getElementById('preloader').style.display = 'none';
+            if(savedName) document.getElementById('loginArea').innerHTML = `<h3>Welcome, ${savedName}</h3><button onclick="localStorage.clear(); location.reload();" style="background:transparent; border:1px solid white; font-size:0.7em;">Sign Out</button>`;
         };
     </script>
 </body>
