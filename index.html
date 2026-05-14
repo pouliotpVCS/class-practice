@@ -47,11 +47,10 @@
             document.getElementById('footingScore').innerText = localStorage.getItem('score_footing') || '0';
             const savedName = localStorage.getItem('studentName');
             if(savedName) {
-                // FIXED: Sign out only removes name, preserving module scores
                 document.getElementById('loginArea').innerHTML = `
                     <h3>Welcome, ${savedName}</h3>
                     <button onclick="localStorage.removeItem('studentName'); location.reload();" 
-                    style="background:transparent; border:1px solid white; font-size:0.7em;">Sign Out</button>`;
+                    style="background:transparent; border:1px solid white; font-size:0.7em; cursor:pointer;">Sign Out</button>`;
             }
         };
     </script>
