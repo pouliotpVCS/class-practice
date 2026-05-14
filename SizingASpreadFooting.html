@@ -6,9 +6,9 @@
     <title>Spread Footing Practice</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f4f7f6; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #673ab7; margin-bottom: 20px; }
-        .btn-back { background: #6c757d; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; }
+        .btn-back { background: #6c757d; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-size: 0.9em; }
         .step { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; background: #f9f9f9; }
         button { padding: 10px 20px; background-color: #673ab7; color: white; border: none; border-radius: 4px; cursor: pointer; }
     </style>
@@ -16,55 +16,39 @@
 <body>
 <div class="container">
     <div class="header">
-        <a href="index.html" class="btn-back">← Back to Dashboard</a>
-        <h1>Spread Footing Design</h1>
+        <a href="index.html" class="btn-back">← Dashboard</a>
+        <h1 style="color:#673ab7;">Spread Footing Practice</h1>
         <div id="scoreDisplay" style="font-weight:bold;">Correct: 0</div>
     </div>
-
     <div class="step">
-        <h3>Design Parameters</h3>
-        <p>Load: 25,000 lb | Soil: Silty Sand (2000 psf) | Thick: 2.0 ft</p>
+        <h3>Current Scenario</h3>
+        <p>Load: 25,000 lb | Soil: Silty Sand (2000 psf) | Thick: 2.0 ft | Size: 4' x 4'</p>
     </div>
-
     <div id="step0" class="step">
-        <h3>Step 1: Verify Area (4ft x 4ft)</h3>
+        <h3>Step 1: Original Area</h3>
         <input type="number" id="inputExistArea" placeholder="sq ft">
-        <button onclick="checkStep0()">Check</button>
+        <button onclick="checkStep0()">Check Area</button>
     </div>
-
     <div id="step3" class="step" style="display:none;">
-        <h3>Final Decision</h3>
-        <button onclick="checkStep3(true)" style="background:green;">SAFE</button>
-        <button onclick="checkStep3(false)" style="background:red;">UNSAFE</button>
+        <h3>Final Assessment</h3>
+        <button onclick="checkStep3(true)" style="background:#28a745;">FOOTING IS SAFE</button>
+        <button onclick="checkStep3(false)" style="background:#dc3545;">FOOTING IS UNSAFE</button>
     </div>
 </div>
-
 <script>
-    // LOAD SCORE FROM STORAGE
     let score = parseInt(localStorage.getItem('score_footing')) || 0;
-
     function checkStep0() {
         if(document.getElementById('inputExistArea').value == 16) {
             document.getElementById('step3').style.display = "block";
         }
     }
-
-    function checkStep3(isSafe) {
-        if(isSafe === true) {
-            score++;
-            updateScore();
-            alert("Correct! Score updated.");
-            location.reload();
+    function checkStep3(choice) {
+        if(choice === true) {
+            score++; localStorage.setItem('score_footing', score);
+            alert("Correct! Progress saved."); location.reload();
         }
     }
-
-    function updateScore() {
-        document.getElementById('scoreDisplay').textContent = `Correct: ${score}`;
-        // SAVE SCORE TO STORAGE
-        localStorage.setItem('score_footing', score);
-    }
-
-    window.onload = updateScore;
+    window.onload = () => { document.getElementById('scoreDisplay').innerText = "Correct: " + score; };
 </script>
 </body>
 </html>
