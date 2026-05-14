@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beam Statics: Variable Loading Lab</title>
+    <title>Beam Statics Practice</title>
     <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <style>
         :root { --primary: #1a3a5a; --accent: #d9480f; --bg: #f8f9fa; --card: #ffffff; }
@@ -12,45 +12,32 @@
         .work-area { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow-y: auto; }
         .header-flex { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary); margin-bottom: 15px; padding-bottom: 10px; }
         .btn-back { background: #6c757d; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 0.8em; }
-        .value-card { background: #f1f4f8; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .val-box { border-left: 3px solid var(--primary); padding-left: 8px; }
-        .val-label { font-size: 0.6em; text-transform: uppercase; color: #6c757d; font-weight: bold; }
-        .val-data { font-size: 0.85em; font-weight: 800; display: block; }
         .step { border: 1px solid #e9ecef; padding: 12px; margin-bottom: 10px; border-radius: 8px; opacity: 0.3; pointer-events: none; }
         .step.active { border: 2px solid var(--primary); background: #fff; opacity: 1; pointer-events: auto; }
-        .formula-bar { background: #343a40; color: #00ffc3; padding: 10px; border-radius: 4px; text-align: center; font-size: 0.9em; }
-        .visual-area { background: var(--card); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; }
-        .diagram-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        .input-row { display: flex; gap: 8px; margin-top: 8px; }
-        input { flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        button { padding: 8px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .feedback { margin-top: 8px; padding: 6px; border-radius: 4px; font-size: 0.8em; font-weight: bold; display: none; }
-        .correct { background: #d3f9d8; color: #2b8a3e; }
-        .incorrect { background: #fff5f5; color: #c92a2a; }
-        .svg-label { font-size: 11px; font-weight: bold; fill: #d9480f; font-family: sans-serif; }
+        .formula-bar { background: #343a40; color: #00ffc3; padding: 10px; border-radius: 4px; text-align: center; }
+        .svg-label { font-size: 11px; font-weight: bold; fill: var(--accent); }
+        #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; }
+        .loader-spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-<div class="wrapper">
-    <div class="work-area">
-        <div class="header-flex">
-            <a href="index.html" class="btn-back">← Dashboard</a>
-            <h1 id="scenarioTitle" style="font-size: 1em;">Loading...</h1>
-            <div id="scoreDisplay" style="background:#d9480f; color:white; padding:4px 10px; border-radius:15px; font-size:0.8em;">Mastery: 0/5</div>
+    <div id="preloader"><div class="loader-spinner"></div><div class="loader-text">LOADING STATICS LAB...</div></div>
+
+    <div class="wrapper">
+        <div class="work-area">
+            <div class="header-flex">
+                <a href="index.html" class="btn-back">← Dashboard</a>
+                <h1 id="scenarioTitle" style="font-size: 1em;">Structural Analysis</h1>
+                <div id="scoreDisplay" style="background:var(--accent); color:white; padding:4px 12px; border-radius:20px; font-size:0.8em;">Mastery: 0/5</div>
+            </div>
+            <div id="step1" class="step active"><strong>1. Total Vertical Force</strong><div class="formula-bar">\[ \sum F_y \]</div><input type="number" id="in1"><button onclick="check1()">Verify</button></div>
+            <div id="step2" class="step"><strong>2. Moments at A</strong><div class="formula-bar">\[ \sum M_A \]</div><input type="number" id="in2"><button onclick="check2()">Verify</button></div>
+            <div id="step3" class="step"><strong>3. Reaction B</strong><div class="formula-bar">\[ R_{by} \]</div><input type="number" id="in3"><button onclick="check3()">Verify</button></div>
+            <div id="step4" class="step"><strong>4. Reaction A</strong><div class="formula-bar">\[ R_{ay} \]</div><input type="number" id="in4"><button onclick="check4()">Submit</button></div>
         </div>
-        <div class="value-card">
-            <div class="val-box"><span class="val-label">Span (L)</span><span class="val-data" id="dispL">--</span></div>
-            <div class="val-box"><span class="val-label">Uniform (w)</span><span class="val-data" id="dispW">--</span></div>
-            <div class="val-box"><span class="val-label">Points (P)</span><span class="val-data" id="dispP">--</span></div>
-            <div class="val-box"><span class="val-label">Dist (x)</span><span class="val-data" id="dispX">--</span></div>
-        </div>
-        <div id="step1" class="step active"><strong>1. Total Vertical Force</strong><div class="formula-bar">\[ \sum F_y = -(w \cdot L) - \sum P \]</div><div class="input-row"><input type="number" id="in1" placeholder="Negative Value"><button onclick="check1()">Verify</button></div><div id="fb1" class="feedback"></div></div>
-        <div id="step2" class="step"><strong>2. Moments at A</strong><div class="formula-bar">\[ \sum M_A = -(wL \cdot L/2) - \sum(P \cdot x) \]</div><div class="input-row"><input type="number" id="in2" placeholder="Negative Value"><button onclick="check2()">Verify</button></div><div id="fb2" class="feedback"></div></div>
-        <div id="step3" class="step"><strong>3. Reaction B</strong><div class="formula-bar">\[ R_{by} = -\sum M_A / L \]</div><div class="input-row"><input type="number" id="in3" placeholder="Positive Value"><button onclick="check3()">Verify</button></div><div id="fb3" class="feedback"></div></div>
-        <div id="step4" class="step"><strong>4. Reaction A</strong><div class="formula-bar">\[ R_{ay} = |\sum F_y| - R_{by} \]</div><div class="input-row"><input type="number" id="in4" placeholder="Positive Value"><button onclick="check4()">Submit</button></div><div id="fb4" class="feedback"></div></div>
-    </div>
-    <div class="visual-area">
-        <div class="diagram-container">
+
+        <div style="background:white; border-radius:12px; padding:20px;">
             <svg width="400" height="250" viewBox="0 0 400 250" id="beamSvg">
                 <rect x="50" y="110" width="300" height="12" fill="#495057" rx="2" />
                 <path d="M40 145 L60 145 L50 122 Z" fill="#1a3a5a" />
@@ -59,51 +46,43 @@
                 <defs><marker id="arr" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#d9480f" /></marker></defs>
             </svg>
         </div>
+        <div style="background:#212529; border-radius:12px; overflow:hidden;"><iframe src="https://www.desmos.com/scientific" width="100%" height="100%" style="border:none; filter:invert(0.9) hue-rotate(180deg);"></iframe></div>
     </div>
-    <div style="background:#212529; border-radius:12px; overflow:hidden;"><iframe src="https://www.desmos.com/scientific" width="100%" height="100%" style="border:none; filter:invert(0.9) hue-rotate(180deg);"></iframe></div>
-</div>
-<script>
-    let p = {}; let score = parseInt(localStorage.getItem('score_beam')) || 0;
-    function generate() {
-        const container = document.getElementById('dynamicLoads'); container.innerHTML = "";
-        p.L = 20; p.w = (score === 1 || score > 2) ? 40 : 0;
-        p.points = (score === 0 || score > 2) ? [{mag: 500, dist: 12}] : [];
-        if(p.w > 0) {
-            let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            r.setAttribute("x", 50); r.setAttribute("y", 60); r.setAttribute("width", 300); r.setAttribute("height", 40);
-            r.setAttribute("fill", "rgba(217, 72, 15, 0.1)"); r.setAttribute("stroke", "#d9480f"); container.appendChild(r);
-            addLabel(160, 55, "w=" + p.w, container);
+
+    <script>
+        let p = {}; let score = parseInt(localStorage.getItem('score_beam')) || 0;
+        function generate() {
+            const container = document.getElementById('dynamicLoads'); container.innerHTML = "";
+            p.L = 20; p.w = (score > 0) ? 40 : 0; p.points = (score === 0 || score > 1) ? [{mag: 500, dist: 12}] : [];
+            
+            if(p.w > 0) {
+                let r = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                r.setAttribute("x", 50); r.setAttribute("y", 60); r.setAttribute("width", 300); r.setAttribute("height", 40);
+                r.setAttribute("fill", "rgba(217, 72, 15, 0.1)"); r.setAttribute("stroke", "#d9480f"); container.appendChild(r);
+                addLabel(160, 55, "w=" + p.w, container);
+            }
+            p.points.forEach(pt => {
+                let x = 50 + (pt.dist/p.L)*300;
+                let l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                l.setAttribute("x1", x); l.setAttribute("y1", 30); l.setAttribute("x2", x); l.setAttribute("y2", 100);
+                l.setAttribute("stroke", "#d9480f"); l.setAttribute("stroke-width", "4"); l.setAttribute("marker-end", "url(#arr)");
+                container.appendChild(l); addLabel(x-20, 25, pt.mag + "lb", container);
+            });
+            
+            p.totalFy = -((p.w * p.L) + p.points.reduce((s, pt) => s + pt.mag, 0));
+            p.ma = -((p.w * p.L * 10) + p.points.reduce((s, pt) => s + (pt.mag * pt.dist), 0));
+            p.rby = Math.abs(p.ma/p.L); p.ray = Math.abs(p.totalFy) - p.rby;
+            document.getElementById('scoreDisplay').innerText = `Mastery: ${score}/5`;
         }
-        p.points.forEach(pt => {
-            let x = 50 + (pt.dist/p.L)*300;
-            let l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            l.setAttribute("x1", x); l.setAttribute("y1", 30); l.setAttribute("x2", x); l.setAttribute("y2", 100);
-            l.setAttribute("stroke", "#d9480f"); l.setAttribute("stroke-width", "4"); l.setAttribute("marker-end", "url(#arr)");
-            container.appendChild(l); addLabel(x-20, 25, pt.mag + "lb", container);
-        });
-        p.totalFy = -((p.w * p.L) + p.points.reduce((s, pt) => s + pt.mag, 0));
-        p.ma = -((p.w * p.L * 10) + p.points.reduce((s, pt) => s + (pt.mag * pt.dist), 0));
-        p.rby = Math.abs(p.ma/p.L); p.ray = Math.abs(p.totalFy) - p.rby;
-        document.getElementById('dispL').innerText = p.L+"ft"; document.getElementById('dispW').innerText = p.w+"lb/ft";
-        document.getElementById('dispP').innerText = p.points.length ? p.points[0].mag+"lb" : "0";
-        document.getElementById('dispX').innerText = p.points.length ? p.points[0].dist+"ft" : "N/A";
-        document.getElementById('scoreDisplay').innerText = `Mastery: ${score}/5`;
-    }
-    function addLabel(x, y, txt, parent) {
-        let t = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        t.setAttribute("x", x); t.setAttribute("y", y); t.setAttribute("class", "svg-label");
-        t.textContent = txt; parent.appendChild(t);
-    }
-    function check1() { if(Math.abs(parseFloat(document.getElementById('in1').value) - p.totalFy) < 2) activate('step2', 'fb1'); }
-    function check2() { if(Math.abs(parseFloat(document.getElementById('in2').value) - p.ma) < 10) activate('step3', 'fb2'); }
-    function check3() { if(Math.abs(parseFloat(document.getElementById('in3').value) - p.rby) < 2) activate('step4', 'fb3'); }
-    function check4() {
-        if(Math.abs(parseFloat(document.getElementById('in4').value) - p.ray) < 2) {
-            score++; localStorage.setItem('score_beam', score); generate();
+        function addLabel(x, y, txt, parent) {
+            let t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            t.setAttribute("x", x); t.setAttribute("y", y); t.setAttribute("class", "svg-label");
+            t.textContent = txt; parent.appendChild(t);
         }
-    }
-    function activate(next, fb) { document.getElementById(fb).style.display = "block"; document.getElementById(fb).className = "feedback correct"; document.getElementById(fb).innerText = "Correct"; document.getElementById(next).classList.add('active'); }
-    window.onload = generate;
-</script>
+        function check1() { if(Math.abs(parseFloat(document.getElementById('in1').value) - p.totalFy) < 2) activate('step2'); }
+        function check4() { score++; localStorage.setItem('score_beam', score); generate(); }
+        function activate(id) { document.getElementById(id).classList.add('active'); }
+        window.onload = function() { generate(); document.getElementById('preloader').style.display = 'none'; };
+    </script>
 </body>
 </html>
