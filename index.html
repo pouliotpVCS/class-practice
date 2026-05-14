@@ -46,7 +46,13 @@
             document.getElementById('beamScore').innerText = localStorage.getItem('score_beam') || '0';
             document.getElementById('footingScore').innerText = localStorage.getItem('score_footing') || '0';
             const savedName = localStorage.getItem('studentName');
-            if(savedName) document.getElementById('loginArea').innerHTML = `<h3>Welcome, ${savedName}</h3><button onclick="localStorage.clear(); location.reload();" style="background:transparent; border:1px solid white; font-size:0.7em;">Sign Out</button>`;
+            if(savedName) {
+                // FIXED: Sign out now only removes the name, preserving scores
+                document.getElementById('loginArea').innerHTML = `
+                    <h3>Welcome, ${savedName}</h3>
+                    <button onclick="localStorage.removeItem('studentName'); location.reload();" 
+                    style="background:transparent; border:1px solid white; font-size:0.7em;">Sign Out</button>`;
+            }
         };
     </script>
 </body>

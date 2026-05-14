@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spread Footing Design</title>
+    <title>Foundation Engineering: Spread Footing Design</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f4f7f6; }
-        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #673ab7; margin-bottom: 20px; }
-        .btn-back { background: #6c757d; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px; font-size: 0.9em; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
         #preloader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s; }
         .loader-spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #673ab7; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #673ab7; margin-bottom: 20px; }
+        #scoreDisplay { font-weight: bold; background: #eee; padding: 5px 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -19,28 +19,17 @@
     
     <div class="container">
         <div class="header">
-            <a href="index.html" class="btn-back">← Dashboard</a>
-            <h1 style="color:#673ab7;">Footing Design</h1>
-            <div id="scoreDisplay" style="font-weight:bold;">Correct: 0</div>
+            <a href="index.html" style="background:#6c757d; color:white; text-decoration:none; padding:8px 15px; border-radius:4px; font-size:0.9em;">← Dashboard</a>
+            <h1 style="color:#673ab7; margin:0;">Footing Design</h1>
+            <div id="scoreDisplay">Correct: 0</div>
         </div>
-        <div class="step">
-            <h3>Scenario</h3>
-            <p>Load: 25,000 lb | Soil: Silty Sand (2000 psf) | Thick: 2.0 ft</p>
-            <input type="number" id="inputExistArea" placeholder="Area in sq ft">
-            <button onclick="check()">Check</button>
         </div>
-    </div>
 
     <script>
         let score = parseInt(localStorage.getItem('score_footing')) || 0;
-        function check() {
-            if(document.getElementById('inputExistArea').value == 16) {
-                score++; localStorage.setItem('score_footing', score);
-                alert("Correct!"); location.reload();
-            }
-        }
         window.onload = function() {
             document.getElementById('scoreDisplay').innerText = "Correct: " + score;
+            // (Problem generation call)
             setTimeout(() => { 
                 document.getElementById('preloader').style.opacity = '0';
                 setTimeout(() => document.getElementById('preloader').style.display = 'none', 500);
