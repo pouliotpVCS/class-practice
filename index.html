@@ -11,7 +11,7 @@
         .profile-section { background: #2c3e50; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         input { padding: 10px; border-radius: 4px; border: 1px solid #ddd; margin-right: 10px; width: 200px; }
         button { padding: 10px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-reset { background: #e74c3c; font-size: 0.8em; margin-top: 20px; width: 100%; }
+        .btn-reset { background: #e74c3c; font-size: 0.8em; margin-top: 20px; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; }
         .btn-reset:hover { background: #c0392b; }
         .link-card { display: block; background: #fff; border: 1px solid #ddd; margin-bottom: 15px; padding: 20px; border-radius: 6px; text-decoration: none; color: #2c3e50; transition: transform 0.2s; position: relative; }
         .link-card:hover { transform: translateY(-2px); border-color: #3498db; background-color: #f0f7ff; }
@@ -31,15 +31,17 @@
 
     <div class="container">
         <h1>Course Modules</h1>
-        <a href="BeamPractice.html" class="link-card">
-            <span class="score-badge">Mastery: <span id="beamScore">0</span>/5</span>
-            <h3>Structural: Beam Practice</h3>
-            <p>Calculate moments, shear, and reactions for various loads.</p>
-        </a>
+        
         <a href="SizingASpreadFooting.html" class="link-card">
             <span class="score-badge">Correct: <span id="footingScore">0</span></span>
             <h3>Geotechnical: Sizing a Spread Footing</h3>
-            <p>Determine footing dimensions and design safety.</p>
+            <p>Determine footing dimensions, evaluate soil safety, and resize foundations.</p>
+        </a>
+
+        <a href="BeamPractice.html" class="link-card">
+            <span class="score-badge">Mastery: <span id="beamScore">0</span>/5</span>
+            <h3>Structural: Beam Practice</h3>
+            <p>Calculate moments, shear, and reactions for various load scenarios.</p>
         </a>
 
         <button class="btn-reset" onclick="resetAll()">Reset All Progress & Scores</button>
@@ -50,15 +52,13 @@
             const name = document.getElementById('studentNameInput').value;
             if(name) { localStorage.setItem('studentName', name); location.reload(); }
         }
-
         function resetAll() {
-            if(confirm("Are you sure you want to clear all scores and progress? This cannot be undone.")) {
+            if(confirm("Clear all scores? This cannot be undone.")) {
                 localStorage.removeItem('score_beam');
                 localStorage.removeItem('score_footing');
                 location.reload();
             }
         }
-
         window.onload = function() {
             document.getElementById('beamScore').innerText = localStorage.getItem('score_beam') || '0';
             document.getElementById('footingScore').innerText = localStorage.getItem('score_footing') || '0';

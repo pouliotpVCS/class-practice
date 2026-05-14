@@ -25,111 +25,120 @@
         .step.active { opacity: 1; pointer-events: auto; }
         .formula-box { background: #f0f0f0; padding: 15px; border-left: 4px solid var(--primary); margin: 10px 0; }
         .visual-container { background: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; border: 1px solid #ddd; min-height: 180px; }
-        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 150px; font-size: 1em; }
+        .input-group { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 80px; font-size: 1em; }
         button { padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .param { font-weight: bold; color: var(--primary); }
         .alert-box { padding: 10px; border-radius: 4px; margin-top: 10px; font-weight: bold; display: none; }
-        .level-badge { background: #ff9800; color: white; padding: 2px 10px; border-radius: 4px; font-size: 0.8em; margin-left: 10px; vertical-align: middle; }
     </style>
 </head>
 <body>
     <div class="main-content">
         <div class="header-flex">
             <a href="index.html" class="btn-back">← Back</a>
-            <h1 style="margin:0; font-size: 1.4em;">Spread Footing Design <span class="level-badge" id="lvlTag">Level 1</span></h1>
+            <h1 style="margin:0; font-size: 1.4em;">Footing Design: Level <span id="lvlNum">1</span></h1>
             <div id="scoreDisplay" style="font-weight:bold; background:var(--primary); color:white; padding:5px 15px; border-radius:20px;">Mastery: 0/5</div>
         </div>
 
-        <div class="visual-container" id="viz">
-            </div>
+        <div class="visual-container" id="viz"></div>
 
         <div id="params" class="step active">
-            <p><strong>Site Data:</strong> Load ($P$): <span class="param" id="dispP"></span> | Soil ($q_{all}$): <span class="param" id="dispQa"></span> | Existing: <span class="param" id="dispDim"></span> | Thick ($T$): <span class="param" id="dispT"></span></p>
+            <p><strong>Parameters:</strong> Load ($P$): <span class="param" id="dispP"></span> | Soil ($q_{all}$): <span class="param" id="dispQa"></span> | Existing: <span class="param" id="dispDim"></span> | Thick ($T$): <span class="param" id="dispT"></span></p>
         </div>
 
         <div id="step1" class="step active">
-            <h3>1. Calculate Net Allowable Pressure ($q_{net}$)</h3>
+            <h3>1. Net Pressure ($q_{net}$)</h3>
             <div class="formula-box">$$ q_{net} = q_{all} - (T \cdot 150 \text{ pcf}) $$</div>
             <input type="number" id="inQnet" placeholder="psf"> <button onclick="checkQnet()">Verify</button>
         </div>
 
         <div id="step2" class="step">
-            <h3>2. Safety Analysis</h3>
-            <p>Determine if current area is safe. Recall: $A_{square} = s^2$ and $A_{circle} = \pi \cdot r^2$</p>
+            <h3>2. Safety Check</h3>
+            <p>Formulas: $A_{sq} = s^2$ | $A_{circ} = \pi \cdot r^2$</p>
             <button onclick="checkSafety(true)" style="background:var(--success);">SAFE</button> 
             <button onclick="checkSafety(false)" style="background:var(--danger);">UNSAFE</button>
             <div id="safetyFeedback" class="alert-box"></div>
         </div>
 
         <div id="step3" class="step">
-            <h3>3. Design Recommendation</h3>
+            <h3>3. Redesign (Round to nearest 3")</h3>
             <p id="resizePrompt"></p>
-            <div class="formula-box" id="formulaRef"></div>
-            <input type="number" id="inSize" step="0.25" placeholder="Value"> <span style="font-weight:bold;" id="unitLabel">ft</span>
-            <button onclick="checkResize()">Submit Design</button>
+            <div class="input-group">
+                <input type="number" id="ansFt" placeholder="0"> <span>ft</span>
+                <input type="number" id="ansIn" placeholder="0"> <span>in</span>
+                <button onclick="checkResize()">Submit</button>
+            </div>
         </div>
     </div>
 
     <div class="calc-sidebar"><iframe src="https://www.desmos.com/scientific"></iframe></div>
 
     <script>
-        let p = {}; 
         let score = parseInt(localStorage.getItem('score_footing')) || 0;
+        let p = {};
+        // Tracks shape usage to ensure 2 round/2 square for the last 4 questions
+        let shapesUsed = JSON.parse(localStorage.getItem('shapes_history')) || { square: 0, circle: 0 };
 
         function generate() {
             if (score >= 5) {
-                alert("Mastery Achieved! Returning to Dashboard.");
+                localStorage.removeItem('shapes_history');
+                alert("Mastery Achieved!");
                 window.location.href = "index.html";
                 return;
             }
 
-            // Leveling Logic: Levels 3+ introduce circular footings
-            p.shape = (score >= 2 && Math.random() > 0.5) ? 'circle' : 'square';
-            const forceUnsafe = Math.random() > 0.4;
+            // LEVEL 1 logic (Always Safe) vs LEVEL 2-5 (Always Unsafe)
+            const isFirst = (score === 0);
             
-            p.qa = [2000, 2500, 3000, 4000][Math.floor(Math.random() * 4)];
-            p.load = Math.floor(Math.random() * 25000) + 15000;
-            p.thick = [1.5, 2.0, 2.5][Math.floor(Math.random() * 3)]; 
+            // Shape Selection logic
+            if (isFirst) {
+                p.shape = 'square';
+            } else {
+                if (shapesUsed.square < 2 && shapesUsed.circle < 2) {
+                    p.shape = Math.random() > 0.5 ? 'square' : 'circle';
+                } else {
+                    p.shape = shapesUsed.square < 2 ? 'square' : 'circle';
+                }
+            }
+
+            p.qa = [2000, 3000, 4000][Math.floor(Math.random() * 3)];
+            p.load = Math.floor(Math.random() * 15000) + 15000;
+            p.thick = 2.0;
             p.qnet = p.qa - (p.thick * 150);
             
             let reqArea = p.load / p.qnet;
-            let currentDim, actualArea;
 
             if (p.shape === 'square') {
                 let reqSide = Math.sqrt(reqArea);
-                currentDim = forceUnsafe ? (Math.floor(reqSide) - 0.5) : (Math.ceil(reqSide) + 1);
-                if (currentDim < 2) currentDim = 2;
-                actualArea = Math.pow(currentDim, 2);
-                p.targetDim = Math.ceil(reqSide * 4) / 4; // Round to nearest 3" (0.25)
-                p.dimLabel = `${currentDim}ft x ${currentDim}ft Square`;
+                p.side = isFirst ? (Math.ceil(reqSide) + 1) : (Math.floor(reqSide) - 0.5);
+                if (p.side < 2) p.side = 2;
+                p.actualArea = p.side * p.side;
+                p.targetDec = Math.ceil(reqSide * 4) / 4; // Round up to 0.25'
+                p.dimLabel = `${p.side} ft Square`;
             } else {
-                let reqRadius = Math.sqrt(reqArea / Math.PI);
-                let reqDiam = reqRadius * 2;
-                currentDim = forceUnsafe ? (Math.floor(reqDiam) - 1) : (Math.ceil(reqDiam) + 1);
-                if (currentDim < 3) currentDim = 3;
-                actualArea = Math.PI * Math.pow(currentDim/2, 2);
-                p.targetDim = Math.ceil(reqDiam * 2) / 2; // Round to nearest 6" (0.50)
-                p.dimLabel = `${currentDim}ft Diameter Circle`;
+                let reqDiam = Math.sqrt(reqArea / Math.PI) * 2;
+                p.side = isFirst ? (Math.ceil(reqDiam) + 1) : (Math.floor(reqDiam) - 0.5);
+                p.actualArea = Math.PI * Math.pow(p.side/2, 2);
+                p.targetDec = Math.ceil(reqDiam * 4) / 4; // Round up to 0.25'
+                p.dimLabel = `${p.side} ft Diameter Circle`;
             }
 
-            p.isSafe = actualArea >= reqArea;
+            p.isSafe = p.actualArea >= reqArea;
             
-            // UI Update
-            document.getElementById('lvlTag').innerText = "Level " + (score + 1);
+            // UI
+            document.getElementById('lvlNum').innerText = score + 1;
+            document.getElementById('scoreDisplay').innerText = `Mastery: ${score}/5`;
             document.getElementById('dispP').innerText = p.load + " lb";
             document.getElementById('dispQa').innerText = p.qa + " psf";
             document.getElementById('dispDim').innerText = p.dimLabel;
             document.getElementById('dispT').innerText = p.thick + " ft";
-            document.getElementById('scoreDisplay').innerText = "Mastery: " + score + "/5";
+            document.getElementById('resizePrompt').innerHTML = p.shape === 'square' ? "Required Side Length ($s$):" : "Required Diameter ($D$):";
             
             updateVisual();
-            updateResizePrompt();
-
             document.querySelectorAll('input').forEach(i => i.value = "");
             document.querySelectorAll('.step').forEach((s, idx) => { if(idx > 1) s.classList.remove('active'); });
             document.getElementById('safetyFeedback').style.display = "none";
-            
-            if (window.MathJax && window.MathJax.typeset) window.MathJax.typeset();
+            if (window.MathJax) window.MathJax.typeset();
         }
 
         function updateVisual() {
@@ -137,31 +146,13 @@
             let shapeSvg = p.shape === 'square' 
                 ? `<rect x="100" y="50" width="100" height="100" fill="#9e9e9e" stroke="#444" />`
                 : `<circle cx="150" cy="100" r="50" fill="#9e9e9e" stroke="#444" />`;
-            
-            viz.innerHTML = `
-                <svg width="300" height="180" viewBox="0 0 300 200">
-                    <rect x="135" y="10" width="30" height="60" fill="#bdbdbd" stroke="#444" opacity="0.6"/>
-                    ${shapeSvg}
-                    <text x="150" y="175" font-size="14" font-weight="bold" text-anchor="middle">${p.dimLabel}</text>
-                </svg>`;
-        }
-
-        function updateResizePrompt() {
-            const prompt = document.getElementById('resizePrompt');
-            const formula = document.getElementById('formulaRef');
-            if (p.shape === 'square') {
-                prompt.innerHTML = "Calculate the minimum <strong>Side Length (s)</strong> for a Square Footing (to nearest 0.25 ft).";
-                formula.innerHTML = "$$ A = s^2 $$";
-            } else {
-                prompt.innerHTML = "Calculate the minimum <strong>Diameter (D)</strong> for a Circular Footing (to nearest 0.50 ft).";
-                formula.innerHTML = "$$ A = \\pi \\cdot r^2 $$";
-            }
+            viz.innerHTML = `<svg width="200" height="160" viewBox="0 0 300 200">${shapeSvg}</svg><p><b>${p.dimLabel}</b></p>`;
         }
 
         function checkQnet() {
-            let val = parseFloat(document.getElementById('inQnet').value);
-            if(Math.abs(val - p.qnet) < 5) document.getElementById('step2').classList.add('active');
-            else alert("Error: Subtract concrete weight (T * 150) from Allowable Soil Pressure.");
+            if(Math.abs(parseFloat(document.getElementById('inQnet').value) - p.qnet) < 5) 
+                document.getElementById('step2').classList.add('active');
+            else alert("Error: Subtract concrete weight (2ft * 150pcf) from Soil Pressure.");
         }
 
         function checkSafety(choice) {
@@ -170,21 +161,30 @@
             if (choice === p.isSafe) {
                 fb.innerText = "Correct Analysis!";
                 fb.style.background = "#d4edda";
-                if(!choice) document.getElementById('step3').classList.add('active');
-                else { score++; localStorage.setItem('score_footing', score); setTimeout(generate, 1200); }
-            } else { fb.innerText = "Incorrect. Compare actual area to P/q_net."; fb.style.background = "#f8d7da"; }
+                if (!choice) document.getElementById('step3').classList.add('active');
+                else { 
+                    score++; localStorage.setItem('score_footing', score); 
+                    setTimeout(generate, 1000); 
+                }
+            } else { fb.innerText = "Incorrect. Compare A_actual to P/q_net."; fb.style.background = "#f8d7da"; }
         }
 
         function checkResize() {
-            let val = parseFloat(document.getElementById('inSize').value);
-            if(Math.abs(val - p.targetDim) < 0.01) {
+            let ft = parseInt(document.getElementById('ansFt').value) || 0;
+            let inc = parseInt(document.getElementById('ansIn').value) || 0;
+            let totalDec = ft + (inc / 12);
+            
+            if (Math.abs(totalDec - p.targetDec) < 0.01) {
                 score++;
+                if (score > 1) { // Only track history for redesign questions
+                    p.shape === 'square' ? shapesUsed.square++ : shapesUsed.circle++;
+                    localStorage.setItem('shapes_history', JSON.stringify(shapesUsed));
+                }
                 localStorage.setItem('score_footing', score);
-                alert("Design Validated!");
+                alert("Design Approved!");
                 generate();
             } else {
-                let hint = p.shape === 'square' ? "Round up to the nearest 0.25'." : "Round up to the nearest 0.50'.";
-                alert(`Incorrect. Target was ${p.targetDim}. ${hint}`);
+                alert(`Incorrect. Required area was ${(p.load/p.qnet).toFixed(2)} sq ft. Round up to nearest 3".`);
             }
         }
 
