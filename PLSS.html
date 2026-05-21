@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLSS Interactive Master Class</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+
+        .mono-font {
+            font-family: 'Space Mono', monospace;
+        }
+
+        /* Cartographic Grid Styles */
+        .grid-line-vertical {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #f59e0b;
+            z-index: 10;
+        }
+
+        .grid-line-horizontal {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background-color: #f59e0b;
+            z-index: 10;
+        }
+
+        /* Pulsing hint animations */
+        @keyframes pulse-gold {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            50% { transform: scale(1.03); box-shadow: 0 0 15px 5px rgba(245, 158, 11, 0.4); }
+        }
+        .active-survey-box {
+            animation: pulse-gold 2s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-500 p-2.5 rounded-lg text-slate-950">
+                    <i class="fa-solid fa-compass-drafting text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wider text-white">PLSS CADASTRAL MASTER</h1>
+                    <p class="text-xs text-slate-400">Interactive Land Surveying & Aliquot Subdivision Trainer</p>
+                </div>
+            </div>
+            
+            <!-- Statistics Bar -->
+            <div class="flex items-center gap-6 bg-slate-950/80 px-5 py-2.5 rounded-xl border border-slate-800">
+                <div class="text-center">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Assignments Passed</p>
+                    <p class="text-lg font-bold text-emerald-400" id="assignmentsPassed">0</p>
+                </div>
+                <div class="h-8 w-[1px] bg-slate-800"></div>
+                <div class="text-center">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Acreage Certified</p>
+                    <p class="text-lg font-bold text-amber-400" id="acreageScore">0 Ac</p>
+                </div>
+                <div class="h-8 w-[1px] bg-slate-800"></div>
+                <div class="text-center">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Accuracy Rating</p>
+                    <p class="text-lg font-bold text-blue-400" id="accuracyRating">100%</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="max-w-7xl mx-auto w-full px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
+        
+        <!-- Left Side: Interactive Step Workspace -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Stepper Progress Tracker -->
+            <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 shadow-xl flex justify-between items-center text-xs md:text-sm font-semibold">
+                <div id="step1-tab" class="flex items-center gap-2 text-amber-500 font-bold border-b-2 border-amber-500 pb-1">
+                    <span class="w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs">1</span>
+                    Township
+                </div>
+                <div class="text-slate-700"><i class="fa-solid fa-chevron-right"></i></div>
+                <div id="step2-tab" class="flex items-center gap-2 text-slate-500">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs">2</span>
+                    Section
+                </div>
+                <div class="text-slate-700"><i class="fa-solid fa-chevron-right"></i></div>
+                <div id="step3-tab" class="flex items-center gap-2 text-slate-500">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs">3</span>
+                    Subdivision
+                </div>
+                <div class="text-slate-700"><i class="fa-solid fa-chevron-right"></i></div>
+                <div id="step4-tab" class="flex items-center gap-2 text-slate-500">
+                    <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs">4</span>
+                    Acreage
+                </div>
+            </div>
+
+            <!-- Active Graphic Workboard -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl relative min-h-[500px] flex flex-col justify-between overflow-hidden">
+                
+                <div id="workspaceTitle" class="text-center mb-4">
+                    <h2 class="text-lg font-bold text-white uppercase tracking-wider" id="workboardHeadline">Step 1: Locate the Township block</h2>
+                    <p class="text-xs text-slate-400 mb-4" id="workboardSubheadline">Click the matching coordinate cell relative to the Base Line & Meridian.</p>
+                </div>
+
+                <!-- Legal Location Description Box (Above Grid) -->
+                <div class="bg-amber-950/40 border border-amber-500/30 p-4 rounded-xl text-center mb-6 shadow-inner relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-[3px] bg-amber-500"></div>
+                    <span class="text-[10px] uppercase font-black tracking-widest text-amber-400 block mb-1.5"><i class="fa-solid fa-map-location-dot mr-1"></i> Target Land Survey Description</span>
+                    <div class="text-lg md:text-xl font-bold italic tracking-tight leading-relaxed text-amber-200" id="activeLegalDescription">
+                        Loading land coordinates...
+                    </div>
+                </div>
+
+                <!-- STEP 1: REGIONAL TOWNSHIP GRID -->
+                <div id="step1-container" class="relative w-full max-w-[420px] mx-auto flex flex-col justify-center items-center py-4">
+                    <!-- Labels -->
+                    <div class="absolute -top-2 text-xs font-bold text-slate-400 uppercase tracking-widest">North</div>
+                    <div class="absolute -bottom-2 text-xs font-bold text-slate-400 uppercase tracking-widest">South</div>
+                    <div class="absolute -left-8 text-xs font-bold text-slate-400 uppercase tracking-widest rotate-270" style="writing-mode: vertical-lr; transform: rotate(180deg);">West</div>
+                    <div class="absolute -right-8 text-xs font-bold text-slate-400 uppercase tracking-widest" style="writing-mode: vertical-lr;">East</div>
+
+                    <!-- 6x6 Grid Plane -->
+                    <div class="grid grid-cols-6 gap-1.5 p-2 bg-slate-950/80 rounded-xl relative border border-slate-800 shadow-inner w-full aspect-square">
+                        <!-- Custom grid-line dividers to visualize axes -->
+                        <div class="absolute top-0 bottom-0 left-1/2 -ml-[2px] w-[4px] bg-rose-500 opacity-60 z-10" title="Principal Meridian"></div>
+                        <div class="absolute left-0 right-0 top-1/2 -mt-[2px] height-[4px] h-[4px] bg-rose-500 opacity-60 z-10" title="Base Line"></div>
+
+                        <!-- Grid Generated Programmatically -->
+                        <div id="regionalGrid" class="contents"></div>
+                    </div>
+                    <div class="mt-4 flex gap-4 text-xs text-slate-400 justify-center">
+                        <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 bg-rose-500 rounded"></span> Axes (PM & BL)</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 bg-sky-600 rounded"></span> Highlighted Block</span>
+                    </div>
+                </div>
+
+                <!-- STEP 2: TOWNSHIP SECTION SELECTION (6x6 snake) -->
+                <div id="step2-container" class="hidden w-full max-w-[420px] mx-auto py-4">
+                    <div class="grid grid-cols-6 gap-2 p-3 bg-slate-950 rounded-xl border border-slate-800 w-full aspect-square" id="sectionGrid">
+                        <!-- Will generate numbers 1 to 36 in dynamic boustrophedon pattern -->
+                    </div>
+                </div>
+
+                <!-- STEP 3: SUBDIVISION SELECTOR -->
+                <div id="step3-container" class="hidden w-full max-w-[420px] mx-auto py-4 flex flex-col items-center">
+                    <!-- Help Banner -->
+                    <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 text-center mb-4 text-sm w-full">
+                        <span class="text-amber-400 font-semibold" id="subdivisionPrompt">Select target area on grid</span>
+                    </div>
+
+                    <!-- Dynamic Subdivision Graphic Base -->
+                    <div id="subdivisionWorkspace" class="w-full aspect-square bg-slate-950 rounded-xl border-2 border-slate-700 p-2 relative overflow-hidden flex flex-col justify-center items-center">
+                        <!-- Dynamic subdivisions elements are rendered here -->
+                    </div>
+                </div>
+
+                <!-- STEP 4: ACREAGE OPTION SELECTOR -->
+                <div id="step4-container" class="hidden w-full max-w-[450px] mx-auto py-4">
+                    <div class="bg-slate-950 border border-slate-800 p-6 rounded-xl flex flex-col gap-4 text-center">
+                        <i class="fa-solid fa-calculator text-4xl text-amber-500 mb-2"></i>
+                        <h3 class="text-lg font-bold text-white uppercase">Acreage Analysis</h3>
+                        <p class="text-sm text-slate-400">Calculate the total square mileage or acreage represented by the highlighted parcel of this section.</p>
+                        
+                        <div class="grid grid-cols-2 gap-4 mt-4" id="acreageChoices">
+                            <!-- Dynamic multiple choice buttons populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wizard Progress Buttons -->
+                <div class="flex justify-between items-center border-t border-slate-800 pt-4 mt-6">
+                    <button id="resetTaskBtn" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 rounded-lg transition" onclick="resetSurvey()">
+                        <i class="fa-solid fa-rotate-left mr-1.5"></i> Restart Current Survey
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <span id="wizardValidationMessage" class="text-xs font-semibold text-rose-400"></span>
+                        <button id="nextStepBtn" class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold uppercase tracking-wider rounded-lg transition text-xs shadow-md shadow-amber-500/20" onclick="verifyCurrentStep()">
+                            Verify Step <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right Side: Clipboard and Instructions -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Legal Survey Assignment Clipboard -->
+            <div class="bg-amber-50 border-t-[16px] border-amber-800 rounded-2xl p-6 shadow-2xl text-slate-900 relative">
+                <!-- Clipboard clip style -->
+                <div class="absolute top-[-20px] left-1/2 transform -translate-x-1/2 bg-slate-700 w-28 h-6 rounded-b-lg border-x-2 border-b-2 border-slate-800 shadow"></div>
+                
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <span class="text-[10px] uppercase font-black tracking-widest text-amber-800">Department of Interior</span>
+                        <h2 class="text-xl font-bold tracking-tight text-slate-950">SURVEY RECORD</h2>
+                    </div>
+                    <div class="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded border border-amber-300 uppercase shadow-sm">
+                        Job No: <span id="jobNumber" class="mono-font">#4901</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="border-b border-dashed border-amber-300 pb-3">
+                        <span class="text-xs font-bold text-amber-800 uppercase tracking-wide block">Current Assignment Objective</span>
+                        <p class="text-sm text-slate-700 mt-1">Analyze the target land description provided on your active workboard, then complete the 4-step survey validation cycle below.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-xs font-semibold py-2">
+                        <div>
+                            <span class="text-slate-500 uppercase block text-[10px]">Reference Meridian</span>
+                            <span class="text-slate-900 font-bold" id="descMeridian">Louisiana Meridian</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 uppercase block text-[10px]">Twp Coordinate</span>
+                            <span class="text-slate-900 font-bold" id="descTownship">Township 4 North</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 uppercase block text-[10px]">Rng Coordinate</span>
+                            <span class="text-slate-900 font-bold" id="descRange">Range 8 West</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 uppercase block text-[10px]">Acreage Category</span>
+                            <span class="text-slate-900 font-bold" id="descSubdivision">S 1/2 of Sec 14</span>
+                        </div>
+                    </div>
+
+                    <!-- Steps Status Tracker -->
+                    <div class="bg-amber-100/80 p-4 rounded-xl border border-amber-200">
+                        <h4 class="text-xs font-bold text-amber-800 uppercase tracking-widest mb-3"><i class="fa-solid fa-list-check mr-1.5"></i> Verification Checklist</h4>
+                        <ul class="space-y-2.5 text-xs text-slate-700">
+                            <li class="flex items-center gap-2.5" id="check-step1">
+                                <i class="fa-regular fa-circle text-amber-600 text-sm"></i>
+                                <span>Locate & Highlight <b>Township Block</b></span>
+                            </li>
+                            <li class="flex items-center gap-2.5" id="check-step2">
+                                <i class="fa-regular fa-circle text-amber-600 text-sm"></i>
+                                <span>Locate & Highlight <b>Section Number</b></span>
+                            </li>
+                            <li class="flex items-center gap-2.5" id="check-step3">
+                                <i class="fa-regular fa-circle text-amber-600 text-sm"></i>
+                                <span>Designate <b>Aliquot Subdivision</b> boundaries</span>
+                            </li>
+                            <li class="flex items-center gap-2.5" id="check-step4">
+                                <i class="fa-regular fa-circle text-amber-600 text-sm"></i>
+                                <span>Verify and Certify <b>Total Land Acreage</b></span>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Hint & Educational Guide Box -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <div class="flex items-center gap-2.5 text-amber-400 mb-3">
+                    <i class="fa-solid fa-circle-info text-lg"></i>
+                    <h3 class="font-bold text-sm uppercase tracking-wide">Cadastral Reference Hint</h3>
+                </div>
+                <div class="text-xs text-slate-400 space-y-2 leading-relaxed" id="dynamicHintBox">
+                    Select the target Township on the regional grid to start.
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-900 py-4 px-6 text-center text-xs text-slate-500">
+        <p>&copy; 2026 Bureau of Cadastral Intelligence. Developed for Educational Training Environments.</p>
+    </footer>
+
+    <!-- Task Complete Toast Modal Overlay -->
+    <div id="successModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-emerald-500/30 p-8 rounded-2xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-2 bg-emerald-500"></div>
+            <div class="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white uppercase tracking-wider mb-2">SURVEY VERIFIED & SIGNED</h3>
+            <p class="text-sm text-slate-400 mb-6 leading-relaxed" id="modalCongratulateMessage">The land parcel has been correctly mapped and signed into the federal database registry.</p>
+            
+            <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 mb-6 text-left">
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <span class="text-slate-500">Certified Area:</span>
+                    <span class="font-bold text-amber-400 text-right" id="modalAcreage">320 Acres</span>
+                    <span class="text-slate-500">Survey Code:</span>
+                    <span class="font-bold text-sky-400 text-right mono-font" id="modalCode">T4N R8W SEC14</span>
+                </div>
+            </div>
+
+            <button class="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold uppercase tracking-wider rounded-lg transition shadow-md shadow-emerald-500/10" onclick="startNewAssignment()">
+                Begin Next Assignment <i class="fa-solid fa-arrow-right ml-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let activeTask = {};
+        let currentStep = 1; // 1 to 4
+        let answers = {
+            selectedTwp: null, // {tNum: 1-3, tDir: 'N'/'S', rNum: 1-3, rDir: 'E'/'W'}
+            selectedSection: null, // integer 1-36
+            selectedSubdivision: null, // custom string representation matching selected quadrant/half
+            calculatedAcreage: null // integer
+        };
+
+        // Statistics tracking
+        let stats = {
+            passed: 0,
+            certifiedAcreage: 0,
+            attempts: 0,
+            correctSteps: 0
+        };
+
+        // PLSS Grid setup values
+        const regionalSize = 3; // R3W to R3E, T3N to T3S
+
+        // Boustrophedon Section Numbers (6x6)
+        const sectionGridArray = [
+            [6, 5, 4, 3, 2, 1],
+            [7, 8, 9, 10, 11, 12],
+            [18, 17, 16, 15, 14, 13],
+            [19, 20, 21, 22, 23, 24],
+            [30, 29, 28, 27, 26, 25],
+            [31, 32, 33, 34, 35, 36]
+        ];
+
+        // Subdivision Templates (Simple or nested quarter)
+        const subdivisionTemplates = [
+            { id: "S2", name: "The South Half (S 1/2)", multiplier: 0.5, type: "half-horizontal", target: "bottom" },
+            { id: "N2", name: "The North Half (N 1/2)", multiplier: 0.5, type: "half-horizontal", target: "top" },
+            { id: "W2", name: "The West Half (W 1/2)", multiplier: 0.5, type: "half-vertical", target: "left" },
+            { id: "E2", name: "The East Half (E 1/2)", multiplier: 0.5, type: "half-vertical", target: "right" },
+            { id: "NW4", name: "The Northwest Quarter (NW 1/4)", multiplier: 0.25, type: "quarter", target: "NW" },
+            { id: "NE4", name: "The Northeast Quarter (NE 1/4)", multiplier: 0.25, type: "quarter", target: "NE" },
+            { id: "SW4", name: "The Southwest Quarter (SW 1/4)", multiplier: 0.25, type: "quarter", target: "SW" },
+            { id: "SE4", name: "The Southeast Quarter (SE 1/4)", multiplier: 0.25, type: "quarter", target: "SE" },
+            { id: "NW_NE", name: "The NW 1/4 of the NE 1/4", multiplier: 0.0625, type: "nested", target: "NE-NW" },
+            { id: "SE_NE", name: "The SE 1/4 of the NE 1/4", multiplier: 0.0625, type: "nested", target: "NE-SE" },
+            { id: "SW_NW", name: "The SW 1/4 of the NW 1/4", multiplier: 0.0625, type: "nested", target: "NW-SW" },
+            { id: "NE_SE", name: "The NE 1/4 of the SE 1/4", multiplier: 0.0625, type: "nested", target: "SE-NE" }
+        ];
+
+        // Initial setup on window load
+        window.onload = function() {
+            loadGameStats();
+            initRegionalGrid();
+            initSectionGrid();
+            startNewAssignment();
+        };
+
+        function loadGameStats() {
+            const savedPassed = localStorage.getItem('plss_passed');
+            const savedAcres = localStorage.getItem('plss_acres');
+            const savedAttempts = localStorage.getItem('plss_attempts');
+            const savedSteps = localStorage.getItem('plss_correct_steps');
+
+            if (savedPassed) stats.passed = parseInt(savedPassed);
+            if (savedAcres) stats.certifiedAcreage = parseInt(savedAcres);
+            if (savedAttempts) stats.attempts = parseInt(savedAttempts);
+            if (savedSteps) stats.correctSteps = parseInt(savedSteps);
+
+            updateScoreboard();
+        }
+
+        function saveGameStats() {
+            localStorage.setItem('plss_passed', stats.passed);
+            localStorage.setItem('plss_acres', stats.certifiedAcreage);
+            localStorage.setItem('plss_attempts', stats.attempts);
+            localStorage.setItem('plss_correct_steps', stats.correctSteps);
+            updateScoreboard();
+        }
+
+        function updateScoreboard() {
+            document.getElementById('assignmentsPassed').innerText = stats.passed;
+            document.getElementById('acreageScore').innerText = stats.certifiedAcreage + " Ac";
+            
+            let acc = 100;
+            if (stats.attempts > 0) {
+                acc = Math.round((stats.correctSteps / stats.attempts) * 100);
+            }
+            document.getElementById('accuracyRating').innerText = acc + "%";
+        }
+
+        // Generate Regional 6x6 Grid with PM and BL axis crosshair lines
+        function initRegionalGrid() {
+            const grid = document.getElementById('regionalGrid');
+            grid.innerHTML = '';
+
+            // Generate cells representing T3N to T3S (Rows) and R3W to R3E (Cols)
+            // Rows correspond to Y-direction (+ is North, - is South)
+            // Cols correspond to X-direction (- is West, + is East)
+            const rows = [3, 2, 1, -1, -2, -3];
+            const cols = [-3, -2, -1, 1, 2, 3];
+
+            rows.forEach((yVal) => {
+                cols.forEach((xVal) => {
+                    const cell = document.createElement('div');
+                    const tDir = yVal > 0 ? 'N' : 'S';
+                    const rDir = xVal > 0 ? 'E' : 'W';
+                    const tNum = Math.abs(yVal);
+                    const rNum = Math.abs(xVal);
+
+                    cell.className = "flex flex-col items-center justify-center bg-slate-900 border border-slate-800/80 rounded hover:bg-slate-800 cursor-pointer text-[9px] font-bold text-slate-500 transition-all z-20 hover:scale-105 active:scale-95 select-none aspect-square";
+                    cell.innerHTML = `T${tNum}${tDir}<br>R${rNum}${rDir}`;
+                    cell.dataset.tnum = tNum;
+                    cell.dataset.tdir = tDir;
+                    cell.dataset.rnum = rNum;
+                    cell.dataset.rdir = rDir;
+
+                    cell.onclick = function() {
+                        if (currentStep !== 1) return;
+                        document.querySelectorAll('#regionalGrid > div').forEach(c => c.classList.remove('bg-sky-600/30', 'text-sky-400', 'border-sky-500'));
+                        cell.classList.add('bg-sky-600/30', 'text-sky-400', 'border-sky-500');
+                        answers.selectedTwp = { tNum, tDir, rNum, rDir };
+                        document.getElementById('wizardValidationMessage').innerText = "";
+                    };
+
+                    grid.appendChild(cell);
+                });
+            });
+        }
+
+        // Initialize standard Boustrophedon 36-Section Grid
+        // Modified: Hides numbers on all section cards except Section 1.
+        function initSectionGrid() {
+            const grid = document.getElementById('sectionGrid');
+            grid.innerHTML = '';
+
+            sectionGridArray.forEach((row) => {
+                row.forEach((num) => {
+                    const cell = document.createElement('div');
+                    cell.className = "flex items-center justify-center bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 cursor-pointer font-bold text-slate-400 transition hover:scale-105 active:scale-95 select-none";
+                    
+                    // Show "1" if it is Section 1, otherwise leave blank
+                    cell.innerText = num === 1 ? "1" : "";
+                    cell.dataset.secNum = num;
+
+                    cell.onclick = function() {
+                        if (currentStep !== 2) return;
+                        document.querySelectorAll('#sectionGrid > div').forEach(c => {
+                            c.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                            // Ensure non-1 sections remain blank when deselected
+                            if (parseInt(c.dataset.secNum) !== 1) {
+                                c.innerText = "";
+                            }
+                        });
+                        
+                        cell.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                        answers.selectedSection = num;
+                        document.getElementById('wizardValidationMessage').innerText = "";
+                    };
+
+                    grid.appendChild(cell);
+                });
+            });
+        }
+
+        // Resets all visual selections, active outlines, and grid labels
+        function clearGridHighlights() {
+            // clear regional grid highlights
+            document.querySelectorAll('#regionalGrid > div').forEach(c => {
+                c.className = "flex flex-col items-center justify-center bg-slate-900 border border-slate-800/80 rounded hover:bg-slate-800 cursor-pointer text-[9px] font-bold text-slate-500 transition-all z-20 hover:scale-105 active:scale-95 select-none aspect-square";
+            });
+            // clear section grid highlights & ensure only Section 1 displays its label
+            document.querySelectorAll('#sectionGrid > div').forEach(c => {
+                c.className = "flex items-center justify-center bg-slate-900 border border-slate-800 rounded-lg hover:bg-slate-800 cursor-pointer font-bold text-slate-400 transition hover:scale-105 active:scale-95 select-none";
+                c.innerText = parseInt(c.dataset.secNum) === 1 ? "1" : "";
+            });
+        }
+
+        // Build unique survey job task
+        function startNewAssignment() {
+            // Pick a random Meridian system
+            const meridians = ["Louisiana Meridian", "Gila & Salt River Meridian", "Michigan Meridian", "Mount Diablo Meridian", "Second Principal Meridian"];
+            const chosenMeridian = meridians[Math.floor(Math.random() * meridians.length)];
+
+            // Choose random valid coordinate ranges (avoiding boundaries)
+            const tDir = Math.random() > 0.5 ? 'N' : 'S';
+            const rDir = Math.random() > 0.5 ? 'E' : 'W';
+            const tNum = Math.floor(Math.random() * 3) + 1; // 1-3
+            const rNum = Math.floor(Math.random() * 3) + 1; // 1-3
+
+            const secNum = Math.floor(Math.random() * 36) + 1; // 1-36
+            const subTemplate = subdivisionTemplates[Math.floor(Math.random() * subdivisionTemplates.length)];
+
+            activeTask = {
+                meridian: chosenMeridian,
+                tNum,
+                tDir,
+                rNum,
+                rDir,
+                secNum,
+                subdivision: subTemplate,
+                jobNumber: "#" + Math.floor(1000 + Math.random() * 9000),
+                totalAcreage: 640 * subTemplate.multiplier
+            };
+
+            // Reset interface state
+            answers = { selectedTwp: null, selectedSection: null, selectedSubdivision: null, calculatedAcreage: null };
+            currentStep = 1;
+
+            // Clear visual grid highlights from previous round
+            clearGridHighlights();
+
+            // Render details on survey pad
+            document.getElementById('jobNumber').innerText = activeTask.jobNumber;
+            document.getElementById('activeLegalDescription').innerHTML = `${activeTask.subdivision.name} of <b>Section ${activeTask.secNum}</b>, Township ${activeTask.tNum} ${activeTask.tDir === 'N' ? 'North' : 'South'}, Range ${activeTask.rNum} ${activeTask.rDir === 'E' ? 'East' : 'West'} of the ${activeTask.meridian}.`;
+            
+            document.getElementById('descMeridian').innerText = activeTask.meridian;
+            document.getElementById('descTownship').innerText = `Township ${activeTask.tNum} ${activeTask.tDir === 'N' ? 'North' : 'South'}`;
+            document.getElementById('descRange').innerText = `Range ${activeTask.rNum} ${activeTask.rDir === 'E' ? 'East' : 'West'}`;
+            document.getElementById('descSubdivision').innerText = `${activeTask.subdivision.name.split('(')[1].replace(')', '')} of Sec ${activeTask.secNum}`;
+
+            // Reset checkpoints
+            resetChecklist();
+            showStep(1);
+
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        function resetChecklist() {
+            const steps = ['check-step1', 'check-step2', 'check-step3', 'check-step4'];
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                el.querySelector('i').className = "fa-regular fa-circle text-amber-600 text-sm";
+                el.classList.remove('text-slate-500', 'line-through');
+            });
+        }
+
+        // Show specific step visual containers
+        function showStep(step) {
+            currentStep = step;
+            
+            // Highlight step headers
+            for (let i = 1; i <= 4; i++) {
+                const tab = document.getElementById(`step${i}-tab`);
+                const bubble = tab.querySelector('span');
+                if (i === step) {
+                    tab.className = "flex items-center gap-2 text-amber-500 font-bold border-b-2 border-amber-500 pb-1";
+                    bubble.className = "w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs font-black shadow-lg shadow-amber-500/20";
+                } else if (i < step) {
+                    tab.className = "flex items-center gap-2 text-emerald-400 font-medium";
+                    bubble.className = "w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-xs";
+                } else {
+                    tab.className = "flex items-center gap-2 text-slate-500";
+                    bubble.className = "w-6 h-6 rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-xs";
+                }
+            }
+
+            // Show appropriate component UI
+            document.getElementById('step1-container').classList.add('hidden');
+            document.getElementById('step2-container').classList.add('hidden');
+            document.getElementById('step3-container').classList.add('hidden');
+            document.getElementById('step4-container').classList.add('hidden');
+            document.getElementById(`step${step}-container`).classList.remove('hidden');
+
+            document.getElementById('wizardValidationMessage').innerText = "";
+
+            // Dynamic titles & Hints
+            const headline = document.getElementById('workboardHeadline');
+            const subhead = document.getElementById('workboardSubheadline');
+            const hint = document.getElementById('dynamicHintBox');
+
+            if (step === 1) {
+                headline.innerText = "Step 1: Locate the Township block";
+                subhead.innerText = "Identify Township & Range coordinate values relative to the base reference lines.";
+                hint.innerHTML = `<strong>Mapping Coordinates:</strong> Look at your survey record. Locate the block corresponding to <b>Township ${activeTask.tNum} ${activeTask.tDir}</b> (count vertically up or down from Base Line) and <b>Range ${activeTask.rNum} ${activeTask.rDir}</b> (count horizontally left or right from Principal Meridian).`;
+            } else if (step === 2) {
+                headline.innerText = `Step 2: Section Grid Navigation`;
+                subhead.innerText = `Pinpoint Section ${activeTask.secNum} in the unnumbered 36-section Boustrophedon snake.`;
+                hint.innerHTML = `<strong>Boustrophedon Navigation:</strong> Remember standard US grids snake back and forth! Row 1 starts on the right (1) and goes left (6). Row 2 drops straight down from 6 to 7, and goes right to 12. Row 3 drops down to 13 and goes left to 18. Count your rows carefully!`;
+            } else if (step === 3) {
+                headline.innerText = "Step 3: Define Aliquot Subdivision";
+                subhead.innerText = "Select and highlight the specific partition boundary specified by the legal description.";
+                hint.innerHTML = `<strong>Aliquot Part Division:</strong> Standard sections are subdivided into halves (320 ac) and quarters (160 ac). Nested subdivisions like <em>NW 1/4 of the NE 1/4</em> must be read backwards to find the exact sector starting from the parent grid.`;
+                buildSubdivisionWorkspace();
+            } else if (step === 4) {
+                headline.innerText = "Step 4: Certified Acreage Calculations";
+                subhead.innerText = "Confirm and sign the final mathematical area represented by this parcel.";
+                hint.innerHTML = `<strong>Surveyor Area Formula:</strong> A full section contains <b>640 acres</b>. Halves contain 320 acres, quarters contain 160 acres, and quarter-quarters contain 40 acres. Choose the matching option to verify standard mathematical calculations.`;
+                buildAcreageChoices();
+            }
+        }
+
+        // Programmatically generate subdivision dynamic mapping grid
+        let step3ActiveLevel = "parent"; // for nested, tracks whether selecting first layer (parent) or second layer (sub)
+        function buildSubdivisionWorkspace() {
+            const container = document.getElementById('subdivisionWorkspace');
+            container.innerHTML = '';
+            answers.selectedSubdivision = null;
+
+            const type = activeTask.subdivision.type;
+            const target = activeTask.subdivision.target;
+
+            // Reset sub-level state tracking
+            if (type === "nested") {
+                step3ActiveLevel = "parent";
+                const parentPart = target.split("-")[0]; // e.g., "NE"
+                document.getElementById('subdivisionPrompt').innerText = `First locate the outer parent sector: The ${parentPart} 1/4`;
+            } else {
+                document.getElementById('subdivisionPrompt').innerText = "Highlight the correct region on the section plane.";
+            }
+
+            // Create appropriate interactive structure
+            if (type === "half-horizontal") {
+                container.className = "w-full aspect-square bg-slate-900 rounded-xl border-2 border-slate-700 grid grid-rows-2 gap-1.5 p-1.5";
+                
+                const topHalf = document.createElement('div');
+                topHalf.className = "flex items-center justify-center rounded bg-slate-950 hover:bg-slate-800 text-slate-500 font-bold tracking-wider cursor-pointer border border-slate-850 select-none transition active:scale-98";
+                topHalf.innerText = "NORTH HALF";
+                topHalf.onclick = () => selectHalfPartition("top", topHalf);
+
+                const bottomHalf = document.createElement('div');
+                bottomHalf.className = "flex items-center justify-center rounded bg-slate-950 hover:bg-slate-800 text-slate-500 font-bold tracking-wider cursor-pointer border border-slate-850 select-none transition active:scale-98";
+                bottomHalf.innerText = "SOUTH HALF";
+                bottomHalf.onclick = () => selectHalfPartition("bottom", bottomHalf);
+
+                container.appendChild(topHalf);
+                container.appendChild(bottomHalf);
+
+            } else if (type === "half-vertical") {
+                container.className = "w-full aspect-square bg-slate-900 rounded-xl border-2 border-slate-700 grid grid-cols-2 gap-1.5 p-1.5";
+
+                const leftHalf = document.createElement('div');
+                leftHalf.className = "flex items-center justify-center rounded bg-slate-950 hover:bg-slate-800 text-slate-500 font-bold tracking-wider cursor-pointer border border-slate-850 text-center select-none transition active:scale-98";
+                leftHalf.innerText = "WEST\nHALF";
+                leftHalf.onclick = () => selectHalfPartition("left", leftHalf);
+
+                const rightHalf = document.createElement('div');
+                rightHalf.className = "flex items-center justify-center rounded bg-slate-950 hover:bg-slate-800 text-slate-500 font-bold tracking-wider cursor-pointer border border-slate-850 text-center select-none transition active:scale-98";
+                rightHalf.innerText = "EAST\nHALF";
+                rightHalf.onclick = () => selectHalfPartition("right", rightHalf);
+
+                container.appendChild(leftHalf);
+                container.appendChild(rightHalf);
+
+            } else if (type === "quarter" || type === "nested") {
+                container.className = "w-full aspect-square bg-slate-900 rounded-xl border-2 border-slate-700 grid grid-cols-2 grid-rows-2 gap-1.5 p-1.5";
+
+                const quadrants = [
+                    { id: "NW", label: "NW 1/4" },
+                    { id: "NE", label: "NE 1/4" },
+                    { id: "SW", label: "SW 1/4" },
+                    { id: "SE", label: "SE 1/4" }
+                ];
+
+                quadrants.forEach(q => {
+                    const qBox = document.createElement('div');
+                    qBox.className = "flex items-center justify-center rounded bg-slate-950 hover:bg-slate-850 border border-slate-800 cursor-pointer font-bold select-none text-slate-400 relative transition active:scale-95 text-center";
+                    qBox.id = `quad-${q.id}`;
+                    qBox.innerText = q.label;
+                    qBox.onclick = () => selectQuadrantPartition(q.id, qBox);
+                    container.appendChild(qBox);
+                });
+            }
+        }
+
+        // Half click logic
+        function selectHalfPartition(side, element) {
+            document.querySelectorAll('#subdivisionWorkspace > div').forEach(div => div.className = "flex items-center justify-center rounded bg-slate-950 hover:bg-slate-800 text-slate-500 font-bold tracking-wider cursor-pointer border border-slate-850 select-none transition active:scale-98");
+            element.className = "flex items-center justify-center rounded bg-amber-500 text-slate-950 font-bold tracking-wider cursor-pointer border-2 border-amber-400 select-none transition scale-[1.01]";
+            answers.selectedSubdivision = side;
+            document.getElementById('wizardValidationMessage').innerText = "";
+        }
+
+        // Quadrant mapping logic
+        function selectQuadrantPartition(qid, element) {
+            const type = activeTask.subdivision.type;
+            const target = activeTask.subdivision.target;
+
+            if (type === "nested" && step3ActiveLevel === "parent") {
+                // User is picking outer parent layer (e.g. "NE")
+                const parentPart = target.split("-")[0]; // NE
+                const childPart = target.split("-")[1]; // NW
+
+                if (qid === parentPart) {
+                    // Correct outer parent quadrant picked! Draw nested inner 2x2 grid inside this box
+                    document.querySelectorAll('#subdivisionWorkspace > div').forEach(div => {
+                        if (div.id !== `quad-${qid}`) {
+                            div.className = "flex items-center justify-center rounded bg-slate-950/20 border border-slate-900/50 cursor-not-allowed text-slate-700 text-center select-none pointer-events-none";
+                        }
+                    });
+
+                    // Convert current quadrant box to interactive subgrid
+                    element.innerHTML = `
+                        <div class="grid grid-cols-2 grid-rows-2 gap-1 w-full h-full p-1 bg-slate-950 rounded">
+                            <div class="sub-quad flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-[10px] font-bold text-slate-400 border border-slate-800 rounded" data-sub="NW">NW</div>
+                            <div class="sub-quad flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-[10px] font-bold text-slate-400 border border-slate-800 rounded" data-sub="NE">NE</div>
+                            <div class="sub-quad flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-[10px] font-bold text-slate-400 border border-slate-800 rounded" data-sub="SW">SW</div>
+                            <div class="sub-quad flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-[10px] font-bold text-slate-400 border border-slate-800 rounded" data-sub="SE">SE</div>
+                        </div>
+                    `;
+                    element.onclick = null; // remove outer click listener
+
+                    // Add listeners to inner grids
+                    element.querySelectorAll('.sub-quad').forEach(sq => {
+                        sq.onclick = function(e) {
+                            e.stopPropagation(); // prevent outer bubbling
+                            element.querySelectorAll('.sub-quad').forEach(q => q.className = "sub-quad flex items-center justify-center bg-slate-900 hover:bg-slate-800 text-[10px] font-bold text-slate-400 border border-slate-800 rounded");
+                            sq.className = "sub-quad flex items-center justify-center bg-amber-500 text-slate-950 text-[10px] font-black border border-amber-400 rounded scale-105";
+                            
+                            const innerChoice = sq.dataset.sub;
+                            answers.selectedSubdivision = `${parentPart}-${innerChoice}`;
+                            document.getElementById('wizardValidationMessage').innerText = "";
+                        };
+                    });
+
+                    step3ActiveLevel = "child";
+                    document.getElementById('subdivisionPrompt').innerText = `Outer boundary correct! Now identify: The ${childPart} 1/4 of that sector`;
+                    stats.correctSteps++;
+                    saveGameStats();
+
+                } else {
+                    document.getElementById('wizardValidationMessage').innerText = "Incorrect outer sector! Review the legal text description.";
+                    stats.attempts++;
+                    saveGameStats();
+                }
+
+            } else if (type === "quarter") {
+                // Direct simple quarter selection
+                document.querySelectorAll('#subdivisionWorkspace > div').forEach(div => div.className = "flex items-center justify-center rounded bg-slate-950 hover:bg-slate-850 border border-slate-800 cursor-pointer font-bold select-none text-slate-400 relative transition active:scale-95 text-center");
+                element.className = "flex items-center justify-center rounded bg-amber-500 text-slate-950 font-bold border-2 border-amber-400 cursor-pointer select-none relative transition scale-105 text-center";
+                answers.selectedSubdivision = qid;
+                document.getElementById('wizardValidationMessage').innerText = "";
+            }
+        }
+
+        // Multiple choice generation for Acreage step
+        function buildAcreageChoices() {
+            const container = document.getElementById('acreageChoices');
+            container.innerHTML = '';
+            answers.calculatedAcreage = null;
+
+            const correctVal = activeTask.totalAcreage;
+
+            // Generate structured mathematical distractors
+            const possibilities = [640, 320, 160, 80, 40, 20, 10];
+            let distractors = possibilities.filter(p => p !== correctVal);
+            
+            // Draw random 3 options from remaining
+            distractors = distractors.sort(() => 0.5 - Math.random()).slice(0, 3);
+            
+            // Combine, shuffle, and render
+            const choices = [correctVal, ...distractors].sort(() => 0.5 - Math.random());
+
+            choices.forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = "py-3 px-4 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-slate-700 text-white font-bold rounded-lg transition active:scale-95 text-sm uppercase flex items-center justify-between";
+                btn.innerHTML = `<span>${val} Acres</span> <i class="fa-regular fa-circle text-slate-600"></i>`;
+                
+                btn.onclick = function() {
+                    container.querySelectorAll('button').forEach(b => {
+                        b.className = "py-3 px-4 bg-slate-900 border border-slate-800 hover:bg-slate-800 hover:border-slate-700 text-white font-bold rounded-lg transition active:scale-95 text-sm uppercase flex items-center justify-between";
+                        b.querySelector('i').className = "fa-regular fa-circle text-slate-600";
+                    });
+
+                    btn.className = "py-3 px-4 bg-amber-500/10 border-2 border-amber-500 text-amber-400 font-bold rounded-lg transition scale-102 text-sm uppercase flex items-center justify-between";
+                    btn.querySelector('i').className = "fa-solid fa-circle-dot text-amber-500";
+                    
+                    answers.calculatedAcreage = val;
+                    document.getElementById('wizardValidationMessage').innerText = "";
+                };
+
+                container.appendChild(btn);
+            });
+        }
+
+        // Multi-stage check system logic
+        function verifyCurrentStep() {
+            const err = document.getElementById('wizardValidationMessage');
+            stats.attempts++;
+
+            if (currentStep === 1) {
+                // Verify Township/Range Selection
+                if (!answers.selectedTwp) {
+                    err.innerText = "Please select a Township block on the grid first.";
+                    return;
+                }
+
+                const isCorrect = (
+                    answers.selectedTwp.tNum === activeTask.tNum &&
+                    answers.selectedTwp.tDir === activeTask.tDir &&
+                    answers.selectedTwp.rNum === activeTask.rNum &&
+                    answers.selectedTwp.rDir === activeTask.rDir
+                );
+
+                if (isCorrect) {
+                    // Update checkmark list status
+                    const li = document.getElementById('check-step1');
+                    li.querySelector('i').className = "fa-solid fa-circle-check text-emerald-500 text-sm";
+                    li.classList.add('text-slate-500', 'line-through');
+
+                    stats.correctSteps++;
+                    saveGameStats();
+                    showStep(2);
+                } else {
+                    err.innerText = "Boundary mismatch. Verify your directional tier (N/S) or column (E/W) coordinates.";
+                    saveGameStats();
+                }
+
+            } else if (currentStep === 2) {
+                // Verify Section Selection
+                if (!answers.selectedSection) {
+                    err.innerText = "Please select a Section number on the grid.";
+                    return;
+                }
+
+                if (answers.selectedSection === activeTask.secNum) {
+                    const li = document.getElementById('check-step2');
+                    li.querySelector('i').className = "fa-solid fa-circle-check text-emerald-500 text-sm";
+                    li.classList.add('text-slate-500', 'line-through');
+
+                    stats.correctSteps++;
+                    saveGameStats();
+                    showStep(3);
+                } else {
+                    err.innerText = `Incorrect section! Sec ${activeTask.secNum} is in Row ${getRowIndexForSection(activeTask.secNum)} of the boustrophedon sequence.`;
+                    saveGameStats();
+                }
+
+            } else if (currentStep === 3) {
+                // Verify Subdivision Selection
+                if (!answers.selectedSubdivision) {
+                    err.innerText = "Please select the target area on the grid representation.";
+                    return;
+                }
+
+                const target = activeTask.subdivision.target;
+                if (answers.selectedSubdivision === target) {
+                    const li = document.getElementById('check-step3');
+                    li.querySelector('i').className = "fa-solid fa-circle-check text-emerald-500 text-sm";
+                    li.classList.add('text-slate-500', 'line-through');
+
+                    stats.correctSteps++;
+                    saveGameStats();
+                    showStep(4);
+                } else {
+                    err.innerText = "Highlight mismatch. Look closely at the specified quadrant or half directional orientation.";
+                    saveGameStats();
+                }
+
+            } else if (currentStep === 4) {
+                // Verify Acreage Multi-Choice Selection
+                if (!answers.calculatedAcreage) {
+                    err.innerText = "Select an acreage choice first.";
+                    return;
+                }
+
+                if (answers.calculatedAcreage === activeTask.totalAcreage) {
+                    const li = document.getElementById('check-step4');
+                    li.querySelector('i').className = "fa-solid fa-circle-check text-emerald-500 text-sm";
+                    li.classList.add('text-slate-500', 'line-through');
+
+                    stats.correctSteps++;
+                    stats.passed++;
+                    stats.certifiedAcreage += activeTask.totalAcreage;
+                    saveGameStats();
+
+                    // Open congrats Modal
+                    showSuccessModal();
+                } else {
+                    err.innerText = "Inaccurate calculation. Check your mathematical multipliers (S 1/2 of full section = 320 Ac).";
+                    saveGameStats();
+                }
+            }
+        }
+
+        // Helper to find row coordinate for debugging/helpful hints
+        function getRowIndexForSection(num) {
+            for (let r = 0; r < 6; r++) {
+                if (sectionGridArray[r].includes(num)) return r + 1;
+            }
+            return 1;
+        }
+
+        // Setup success modal visual content
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            document.getElementById('modalAcreage').innerText = `${activeTask.totalAcreage} Acres`;
+            document.getElementById('modalCode').innerText = `T${activeTask.tNum}${activeTask.tDir} R${activeTask.rNum}${activeTask.rDir} SEC${activeTask.secNum}`;
+            document.getElementById('modalCongratulateMessage').innerHTML = `Congratulations, Surveyor! The aliquot subdivision <strong>${activeTask.subdivision.name}</strong> has been successfully verified, signed, and registered with the National Bureau.`;
+            modal.classList.remove('hidden');
+        }
+
+        // Force full refresh of active assignment
+        function resetSurvey() {
+            answers = { selectedTwp: null, selectedSection: null, selectedSubdivision: null, calculatedAcreage: null };
+            
+            // clear visual grid highlights
+            clearGridHighlights();
+            
+            resetChecklist();
+            showStep(1);
+        }
+    </script>
+</body>
+</html>
