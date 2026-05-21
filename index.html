@@ -71,7 +71,7 @@
             if(confirm("Clear all scores? This cannot be undone.")) {
                 localStorage.removeItem('score_beam');
                 localStorage.removeItem('score_footing');
-                localStorage.removeItem('plss_passed');
+                localStorage.removeItem('score_plss');
                 localStorage.removeItem('plss_acres');
                 localStorage.removeItem('plss_attempts');
                 localStorage.removeItem('plss_correct_steps');
@@ -82,7 +82,7 @@
         window.onload = function() {
             document.getElementById('beamScore').innerText = localStorage.getItem('score_beam') || '0';
             document.getElementById('footingScore').innerText = localStorage.getItem('score_footing') || '0';
-            document.getElementById('plssScore').innerText = localStorage.getItem('plss_passed') || '0';
+            document.getElementById('plssScore').innerText = localStorage.getItem('score_plss') || '0';
             
             const savedName = localStorage.getItem('studentName');
             if(savedName) {
