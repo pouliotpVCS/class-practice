@@ -248,12 +248,13 @@
                         if (currentStep !== 2) return;
                         document.querySelectorAll('#sectionGrid > div').forEach(c => {
                             c.classList.remove('bg-amber-500', 'text-slate-950');
-                            if(c.innerText !== "1") c.innerText = "";
+                            if(parseInt(c.dataset.secNum) !== 1) c.innerText = "";
                         });
                         cell.classList.add('bg-amber-500', 'text-slate-950');
                         if(num !== 1) cell.innerText = num;
                         answers.selectedSection = num;
                     };
+                    cell.dataset.secNum = num;
                     grid.appendChild(cell);
                 });
             });
@@ -265,4 +266,117 @@
             const secNum = Math.floor(Math.random() * 36) + 1;
             const subTemplate = subdivisionTemplates[Math.floor(Math.random() * subdivisionTemplates.length)];
 
-            activeTask = { tNum, tDir, rNum
+            activeTask = { tNum, tDir, rNum, rDir, secNum, subdivision: subTemplate, totalAcreage: 640 * subTemplate.multiplier, jobNumber: "#" + Math.floor(1000 + Math.random() * 9000), meridian: "Louisiana Meridian" };
+            answers = { selectedTwp: null, selectedSection: null, selectedSubdivision: null, calculatedAcreage: null };
+            
+            document.getElementById('activeLegalDescription').innerHTML = `${activeTask.subdivision.name} of <b>Section ${activeTask.secNum}</b>, T${activeTask.tNum}${activeTask.tDir}, R${activeTask.rNum}${activeTask.rDir}`;
+            document.getElementById('descMeridian').innerText = activeTask.meridian;
+            document.getElementById('descTownship').innerText = `T${activeTask.tNum}${activeTask.tDir}`;
+            document.getElementById('descRange').innerText = `R${activeTask.rNum}${activeTask.rDir}`;
+            document.getElementById('descSubdivision').innerText = `Sec ${activeTask.secNum}`;
+            document.getElementById('jobNumber').innerText = activeTask.jobNumber;
+
+            document.querySelectorAll('#regionalGrid > div').forEach(c => c.classList.remove('bg-sky-600/30', 'text-sky-400', 'border-sky-500'));
+            document.querySelectorAll('#sectionGrid > div').forEach(c => {
+                c.classList.remove('bg-amber-500', 'text-slate-950');
+                c.innerText = parseInt(c.dataset.secNum) === 1 ? "1" : "";
+            });
+
+            resetChecklist();
+            showStep(1);
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        function resetChecklist() {
+            ['check-step1', 'check-step2', 'check-step3', 'check-step4'].forEach(id => {
+                const el = document.getElementById(id);
+                el.querySelector('i').className = "fa-regular fa-circle text-amber-600";
+                el.classList.remove('text-slate-500', 'line-through');
+            });
+        }
+
+        function showStep(step) {
+            currentStep = step;
+            [1,2,3,4].forEach(i => {
+                document.getElementById(`step${i}-tab`).className = i === step ? "flex items-center gap-2 text-amber-500 font-bold border-b-2 border-amber-500 pb-1" : "flex items-center gap-2 text-slate-500";
+                document.getElementById(`step${i}-container`).classList.toggle('hidden', i !== step);
+            });
+            if(step === 3) buildSubdivisionWorkspace();
+            if(step === 4) buildAcreageChoices();
+        }
+
+        function verifyCurrentStep() {
+            stats.attempts++;
+            let correct = false;
+            if(currentStep === 1 && answers.selectedTwp?.tNum === activeTask.tNum && answers.selectedTwp?.tDir === activeTask.tDir && answers.selectedTwp?.rNum === activeTask.rNum && answers.selectedTwp?.rDir === activeTask.rDir) correct = true;
+            if(currentStep === 2 && answers.selectedSection === activeTask.secNum) correct = true;
+            if(currentStep === 3 && answers.selectedSubdivision === activeTask.subdivision.target) correct = true;
+            if(currentStep === 4 && answers.calculatedAcreage === activeTask.totalAcreage) {
+                stats.passed++;
+                stats.certifiedAcreage += activeTask.totalAcreage;
+                saveGameStats();
+                showSuccessModal();
+                return;
+            }
+
+            if(correct) {
+                const li = document.getElementById(`check-step${currentStep}`);
+                li.querySelector('i').className = "fa-solid fa-circle-check text-emerald-500";
+                li.classList.add('text-slate-500', 'line-through');
+                stats.correctSteps++;
+                saveGameStats();
+                showStep(currentStep + 1);
+            } else {
+                document.getElementById('wizardValidationMessage').innerText = "Incorrect choice. Try again.";
+                saveGameStats();
+            }
+        }
+
+        function buildSubdivisionWorkspace() {
+            const container = document.getElementById('subdivisionWorkspace');
+            container.innerHTML = '';
+            const type = activeTask.subdivision.type;
+            container.className = "w-full aspect-square bg-slate-900 rounded-xl border-2 border-slate-700 grid p-1.5 gap-1.5 " + (type.includes('vertical') ? 'grid-cols-2' : 'grid-rows-2');
+            if(type === 'quarter') container.className = "w-full aspect-square bg-slate-900 rounded-xl border-2 border-slate-700 grid grid-cols-2 grid-rows-2 p-1.5 gap-1.5";
+            
+            const parts = type === 'quarter' ? ['NW', 'NE', 'SW', 'SE'] : (type.includes('horizontal') ? ['top', 'bottom'] : ['left', 'right']);
+            parts.forEach(p => {
+                const div = document.createElement('div');
+                div.className = "bg-slate-950 border border-slate-800 flex items-center justify-center font-bold text-slate-500 cursor-pointer rounded";
+                div.innerText = p.toUpperCase();
+                div.onclick = () => {
+                    document.querySelectorAll('#subdivisionWorkspace div').forEach(d => d.className = "bg-slate-950 border border-slate-800 flex items-center justify-center font-bold text-slate-500 cursor-pointer rounded");
+                    div.className = "bg-amber-500 text-slate-900 flex items-center justify-center font-bold cursor-pointer rounded scale-105 transition";
+                    answers.selectedSubdivision = p;
+                }
+                container.appendChild(div);
+            });
+        }
+
+        function buildAcreageChoices() {
+            const container = document.getElementById('acreageChoices');
+            container.innerHTML = '';
+            [640, 320, 160, 80, 40].forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = "py-3 bg-slate-900 border border-slate-800 text-white rounded-lg font-bold";
+                btn.innerText = val + " Acres";
+                btn.onclick = () => {
+                    document.querySelectorAll('#acreageChoices button').forEach(b => b.classList.remove('border-amber-500', 'text-amber-500'));
+                    btn.classList.add('border-amber-500', 'text-amber-500');
+                    answers.calculatedAcreage = val;
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function showSuccessModal() {
+            document.getElementById('modalAcreage').innerText = activeTask.totalAcreage + " Acres";
+            document.getElementById('modalCode').innerText = `T${activeTask.tNum}${activeTask.tDir} R${activeTask.rNum}${activeTask.rDir} S${activeTask.secNum}`;
+            document.getElementById('modalCongratulateMessage').innerText = "Survey signed and registered.";
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+
+        function resetSurvey() { startNewAssignment(); }
+    </script>
+</body>
+</html>
